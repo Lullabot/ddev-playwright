@@ -1,0 +1,9 @@
+#!/bin/bash
+#ddev-generated
+
+# ddev errors out on subsequent builds if we symlink these files. Instead, we
+# copy them each time.
+echo "Rebuilding web service with playwright dependencies..."
+cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright
+cp .ddev/.disabled-services/docker-compose.playwright-vnc.yaml .ddev/
+ddev restart
