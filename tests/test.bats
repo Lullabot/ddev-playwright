@@ -29,6 +29,7 @@ setup() {
   wait_for_global_ddev
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
   cd "${TESTDIR}"
+  mkdir -p web
   ddev config --project-name="${PROJNAME}" --docroot=web --project-type=php
   echo "# ddev start" >&3
   ddev start -y >/dev/null
