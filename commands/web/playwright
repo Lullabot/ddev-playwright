@@ -1,0 +1,10 @@
+#!/bin/sh
+#ddev-generated
+
+cd test/playwright
+
+if [ -f yarn.lock ]; then
+  yarn && yarn playwright "$@"
+else
+  npx playwright "$@"
+fi
