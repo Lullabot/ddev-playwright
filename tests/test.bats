@@ -1,3 +1,9 @@
+setup_file() {
+  # Clean up any stale locks from previous test runs.
+  export GLOBAL_DDEV_LOCK=~/tmp/test-addon-ddev-playwright.lock
+  release_global_ddev
+}
+
 setup() {
   set -eu -o pipefail
   load 'test_helper/bats-support/load'
