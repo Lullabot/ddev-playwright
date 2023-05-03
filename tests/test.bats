@@ -48,7 +48,7 @@ release_global_ddev() {
 
 health_checks() {
   # Do something useful here that verifies the add-on
-  ddev exec "curl -s https://localhost:443/" | grep -q phpinfo
+  ddev exec "curl -s https://localhost:443/ | grep -q phpinfo"
 }
 
 teardown() {
