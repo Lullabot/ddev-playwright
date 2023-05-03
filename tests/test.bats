@@ -76,6 +76,8 @@ get_addon() {
 }
 
 verify_run_playwright() {
+  cp -av "$DIR"/tests/testdata/web/ web/
+  cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   ddev install-playwright
   health_checks
 
@@ -88,12 +90,8 @@ verify_run_playwright() {
   # Playwright currently supports 4 browsers.
   assert_output 4
 
-  # Verify we can run the example test.
-  # This uses the literal Playwright example, so it is dependent on network
-  # access. However, so is the earlier npm install commands and downloading
-  # browsers, so we may as well do the simple out-of-the-box solution.
-  # ddev exec -- ls -la /mnt/ddev_config/commands/web/
-  ddev playwright test
+  # Verify we can run an example test.
+  ddev playwright test --reporter=line
 }
 
 @test "install from directory with npm" {
