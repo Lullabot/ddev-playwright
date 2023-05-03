@@ -47,7 +47,6 @@ jobs:
       uses: Homebrew/actions/setup-homebrew@master
     - name: Environment setup
       run: |
-        brew install bats-core mkcert
         mkcert -install
 
     - name: Use ddev stable
@@ -80,7 +79,7 @@ jobs:
       if: github.event.inputs.debug_enabled == 'true'
 
     - name: tests
-      run: bats tests
+      run: ./tests/bats/bin/bats tests
 
     # keepalive-workflow adds a dummy commit if there's no other action here, keeps
     # GitHub from turning off tests after 60 days
