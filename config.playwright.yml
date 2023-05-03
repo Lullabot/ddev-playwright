@@ -4,8 +4,7 @@ hooks:
     # If Playwright is enabled, make sure we get any changes.
     - exec-host: |
         ([[ -f .ddev/web-build/Dockerfile.playwright ]] && \
-          cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright && \
-          cp .ddev/.disabled-services/docker-compose.playwright-vnc.yaml .ddev/) || true
+          cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright) || true
     - exec-host: |
         if [[ -f .ddev/web-build/Dockerfile.playwright ]]
         then
