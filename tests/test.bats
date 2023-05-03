@@ -47,7 +47,7 @@ release_global_ddev() {
 
 health_checks() {
   # Do something useful here that verifies the add-on
-  ddev exec "curl -s https://localhost:443/"
+  ddev exec "curl -s https://localhost:443/" | grep -q phpinfo
 }
 
 teardown() {
@@ -77,6 +77,7 @@ get_addon() {
 
 verify_run_playwright() {
   cp -av "$DIR"/tests/testdata/web/ web/
+  assert [ -f web/index.php ]
   cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   ddev install-playwright
   health_checks
