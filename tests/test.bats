@@ -86,6 +86,7 @@ verify_run_playwright() {
   cp -av "$DIR"/tests/testdata/web/* web/
   assert [ -f web/index.php ]
   ddev install-playwright
+  mkdir -p test/playwright/tests
   cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   health_checks
 
