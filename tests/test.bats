@@ -85,8 +85,8 @@ get_addon() {
 verify_run_playwright() {
   cp -av "$DIR"/tests/testdata/web/* web/
   assert [ -f web/index.php ]
-  cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   ddev install-playwright
+  cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   health_checks
 
   # Verify noVNC is listening.
