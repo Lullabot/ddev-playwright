@@ -34,9 +34,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   && chown -R $username:$username /dot-cache \
   && sudo -u $username ln -s /dot-cache /home/$username/.cache \
   && cd /var/www/html/test/playwright \
-  && sudo -u $username yarn \
-  && sudo -u $username yarn playwright install-deps \
-  && sudo -u $username yarn playwright install \
+  && ([ -f yarn.lock ] && export JS_PKG_MANAGER=yarn || export JS_PKG_MANAGER=npx \
+    && sudo -u $username $JS_PKG_MANAGER \
+    && sudo -u $username $JS_PKG_MANAGER playwright install-deps \
+    && sudo -u $username $JS_PKG_MANAGER playwright install \
+    ) \
   && rm -rf /var/www/html/test/playwright \
   && rm /home/$username/.cache \
   && sudo -u $username mkdir -p /home/$username/.cache \
