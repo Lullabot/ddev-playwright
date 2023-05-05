@@ -76,9 +76,8 @@ get_addon() {
   assert [ -f .ddev/commands/web/playwright ]
   assert [ -f .ddev/web-build/.gitignore ]
   assert [ -f .ddev/web-build/disabled.Dockerfile.playwright ]
-  assert [ -f .ddev/web-build/start-novnc.sh ]
-  assert [ -f .ddev/web-build/start-vnc.sh ]
-  assert [ -f .ddev/web-build/start-xvfb.sh ]
+  assert [ -f .ddev/web-build/kasmvnc.yaml ]
+  assert [ -f .ddev/web-build/xstartup ]
   mkdir test
 }
 
@@ -90,8 +89,9 @@ verify_run_playwright() {
   cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   health_checks
 
-  # Verify noVNC is listening.
-  curl -s https://"${PROJNAME}".ddev.site:7900/
+  # Verify kasmvnc is listening.
+  curl -s https://"${PROJNAME}".ddev.site:8444/
+  curl -s --user $USER:secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
 
   # Verify that browsers have been downloaded.
   ddev exec -- ls \~/.cache/ms-playwright
