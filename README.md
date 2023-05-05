@@ -1,4 +1,4 @@
-[![tests](https://github.com/ddev/ddev-addon-template/actions/workflows/tests.yml/badge.svg)](https://github.com/ddev/ddev-addon-template/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2024.svg)
+[![tests](https://github.com/deviantintegral/ddev-playwright/actions/workflows/tests.yml/badge.svg)](https://github.com/deviantintegral/ddev-playwright/actions/workflows/tests.yml) ![project is maintained](https://img.shields.io/maintenance/yes/2024.svg)
 
 # ddev-addon-template <!-- omit in toc -->
 
@@ -10,7 +10,7 @@
 
 This repository is a template for providing [DDEV](https://ddev.readthedocs.io) add-ons and services.
 
-In DDEV addons can be installed from the command line using the `ddev get` command, for example, `ddev get ddev/ddev-addon-template` or `ddev get ddev/ddev-drupal9-solr`.
+In DDEV addons can be installed from the command line using the `ddev get` command, for example, `ddev get deviantintegral/ddev-playwright` or `ddev get ddev/ddev-drupal9-solr`.
 
 A repository like this one is the way to get started. You can create a new repo from this one by clicking the template button in the top right corner of the page.
 
