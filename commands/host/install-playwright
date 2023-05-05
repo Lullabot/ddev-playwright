@@ -16,6 +16,8 @@ if [ ! -f test/playwright/package.json ]; then
   echo "Answer "no" when it asks to install browsers and operating system dependencies,"
   echo "as those will be erased when ddev restarts."
   echo ""
+  echo "As well, add ignoreHTTPSErrors: true to playwright.config.ts."
+  echo ""
   echo "See https://playwright.dev/docs/intro for more details."
   echo ""
   echo "When done, run: ddev install-playwright"
