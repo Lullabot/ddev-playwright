@@ -11,6 +11,8 @@ setup() {
   export DIR
   DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
 
+  echo "# user is ${USER}" >&3
+
   # This was written so we could use bats' --jobs parameter to support multiple
   # parallel tests. Unfortunately, running in parallel causes ddev state to
   # become corrupt. I think these are ddev bugs. Since I figured out the temp
@@ -37,6 +39,10 @@ setup() {
   cd "${TESTDIR}"
   mkdir -p web
   ddev config --project-name="${PROJNAME}" --docroot=web --project-type=php
+
+  # Traefik is required for basic auth to pass through to KasmVNC correctly.
+  ddev config global --use-traefik
+
   echo "# ddev start" >&3
   ddev start -y >/dev/null
   release_global_ddev
@@ -76,9 +82,8 @@ get_addon() {
   assert [ -f .ddev/commands/web/playwright ]
   assert [ -f .ddev/web-build/.gitignore ]
   assert [ -f .ddev/web-build/disabled.Dockerfile.playwright ]
-  assert [ -f .ddev/web-build/start-novnc.sh ]
-  assert [ -f .ddev/web-build/start-vnc.sh ]
-  assert [ -f .ddev/web-build/start-xvfb.sh ]
+  assert [ -f .ddev/web-build/kasmvnc.yaml ]
+  assert [ -f .ddev/web-build/xstartup ]
   mkdir test
 }
 
@@ -90,8 +95,12 @@ verify_run_playwright() {
   cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   health_checks
 
-  # Verify noVNC is listening.
-  curl -s https://"${PROJNAME}".ddev.site:7900/
+  # Verify kasmvnc is listening.
+  curl -s https://"${PROJNAME}".ddev.site:8444/
+  curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/"
+  ddev logs
+  echo "#" curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" >&3
+  curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
 
   # Verify that browsers have been downloaded.
   ddev exec -- ls \~/.cache/ms-playwright

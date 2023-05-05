@@ -13,6 +13,11 @@ if [ ! -f test/playwright/package.json ]; then
   echo "Run the following to use yarn instead:"
   echo   ddev exec -d /var/www/html/test/playwright yarn create playwright
   echo ""
+  echo "Answer "no" when it asks to install browsers and operating system dependencies,"
+  echo "as those will be erased when ddev restarts."
+  echo ""
+  echo "As well, add ignoreHTTPSErrors: true to playwright.config.ts."
+  echo ""
   echo "See https://playwright.dev/docs/intro for more details."
   echo ""
   echo "When done, run: ddev install-playwright"

@@ -44,39 +44,30 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   && sudo -u $username mkdir -p /home/$username/.cache \
   && sudo -u $username cp -a /dot-cache/* /home/$username/.cache/
 
-# Install a window manager and VNC server.
+# Install a window manager.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
-  sudo apt-get install -y fluxbox \
-    xauth \
-    x11vnc
+  sudo apt-get install -y icewm \
+    xauth
+
+# Install kasmvnc for remote access.
+RUN /bin/bash -c 'if [ $(arch) == "aarch64" ]; then KASM_ARCH=arm64; else KASM_ARCH=amd64; fi; wget https://github.com/kasmtech/KasmVNC/releases/download/v1.1.0/kasmvncserver_bullseye_1.1.0_${KASM_ARCH}.deb'
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+  sudo apt-get install -y ./kasmvncserver*.deb
+
+# We can't add the user to the ssl-cert group. Rather, we can add them, but it
+# won't actually apply to ddev ssh / docker exec.
+# Even though we disable requiring SSL because we route through the ddev
+# router, kasmvnc still requires reading the TLS cert.
+RUN sudo chgrp -R $gid /etc/ssl/private
+
+RUN sudo -u $username mkdir /home/$username/.vnc
+COPY kasmvnc.yaml xstartup /home/$username/.vnc
+RUN chown $username:$username /home/$username/.vnc/*
+RUN sudo -u $username touch /home/$username/.vnc/.de-was-selected
+
+RUN sudo -u $username /bin/bash -c 'echo -e "secret\nsecret\n" | kasmvncpasswd -wo -u $USER'
 
 # We're done with apt so disable caching again for the final image.
 RUN mv /etc/apt/docker-clean-disabled /etc/apt/apt.conf.d/docker-clean
-
-# Install novnc to access the GUI over a browser.
-ENV NOVNC_VERSION="1.4.0" \
-    WEBSOCKIFY_VERSION="0.11.0"
-RUN  wget -nv -O noVNC.zip \
-       "https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.zip" \
-  && unzip -x noVNC.zip \
-  && mkdir -p /opt/bin \
-  && mv noVNC-${NOVNC_VERSION} /opt/bin/noVNC \
-  && cp /opt/bin/noVNC/vnc.html /opt/bin/noVNC/index.html \
-  && rm noVNC.zip \
-  && wget -nv -O websockify.zip \
-      "https://github.com/novnc/websockify/archive/refs/tags/v${WEBSOCKIFY_VERSION}.zip" \
-  && unzip -x websockify.zip \
-  && rm websockify.zip \
-  && rm -rf websockify-${WEBSOCKIFY_VERSION}/tests \
-  && mv websockify-${WEBSOCKIFY_VERSION} /opt/bin/noVNC/utils/websockify
-
-# Copy start scripts for the x server, x11vnc, and novnc.
-COPY start-*.sh /usr/local/bin
-RUN chmod +rx /usr/local/bin/start-*.sh
-
-# novnc requires a password, so we set it to secret matching Selenium's images.
-RUN sudo -u $username mkdir -p /home/$username/.vnc
-RUN sudo -u $username x11vnc -storepasswd secret /home/$username/.vnc/passwd
-
-EXPOSE 5900
