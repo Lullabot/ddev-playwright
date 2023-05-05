@@ -11,6 +11,8 @@ setup() {
   export DIR
   DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
 
+  echo "# user is ${USER}" >&3
+
   # This was written so we could use bats' --jobs parameter to support multiple
   # parallel tests. Unfortunately, running in parallel causes ddev state to
   # become corrupt. I think these are ddev bugs. Since I figured out the temp
@@ -91,7 +93,7 @@ verify_run_playwright() {
 
   # Verify kasmvnc is listening.
   curl -s https://"${PROJNAME}".ddev.site:8444/
-  echo "#" curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC >&3
+  echo "#" curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" >&3
   curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
 
   # Verify that browsers have been downloaded.
