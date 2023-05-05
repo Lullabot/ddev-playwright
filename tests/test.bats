@@ -91,7 +91,8 @@ verify_run_playwright() {
 
   # Verify kasmvnc is listening.
   curl -s https://"${PROJNAME}".ddev.site:8444/
-  curl -s --user $USER:secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
+  echo "#" curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC >&3
+  curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
 
   # Verify that browsers have been downloaded.
   ddev exec -- ls \~/.cache/ms-playwright
