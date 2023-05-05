@@ -39,6 +39,10 @@ setup() {
   cd "${TESTDIR}"
   mkdir -p web
   ddev config --project-name="${PROJNAME}" --docroot=web --project-type=php
+
+  # Traefik is required for basic auth to pass through to KasmVNC correctly.
+  ddev config global --use-traefik
+
   echo "# ddev start" >&3
   ddev start -y >/dev/null
   release_global_ddev
