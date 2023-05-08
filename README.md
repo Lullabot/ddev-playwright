@@ -3,7 +3,7 @@
 # ddev-playwright <!-- omit in toc -->
 
 ![example in action](images/demo.webp)
-_Example test validating phpinfo(), slowed significantly down for the demo._
+_Example test validating phpinfo(), slowed down for the demo._
 
 * [What is ddev-playwright?](#what-is-ddev-playwright)
 * [Getting started](#getting-started)
