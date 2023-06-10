@@ -24,7 +24,7 @@ Highlights include:
 ## Getting started
 
 ```console
-ddev addon get https://github.com/deviantintegral/ddev-playwright
+ddev get https://github.com/deviantintegral/ddev-playwright
 git add .
 git add -f .ddev/config.playwright.yml
 mkdir -p test/playwright
