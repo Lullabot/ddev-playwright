@@ -1,9 +1,3 @@
-setup_file() {
-  # Clean up any stale locks from previous test runs.
-  export GLOBAL_DDEV_LOCK=~/tmp/test-addon-ddev-playwright.lock
-  release_global_ddev
-}
-
 setup() {
   set -eu -o pipefail
   load 'test_helper/bats-support/load'
@@ -13,28 +7,12 @@ setup() {
 
   echo "# user is ${USER}" >&3
 
-  # This was written so we could use bats' --jobs parameter to support multiple
-  # parallel tests. Unfortunately, running in parallel causes ddev state to
-  # become corrupt. I think these are ddev bugs. Since I figured out the temp
-  # handling already, I've added locks around the commands that potentially have
-  # global affects.
-
-  # We need to override /tmp because that is not mounted by default in macOS
-  # Docker software like Colima and Docker Desktop.
-  # https://stackoverflow.com/questions/31396985/why-is-mktemp-on-os-x-broken-with-a-command-that-worked-on-linux
-  mkdir -p ~/tmp
-
-  # Clean up any stale locks from previous test runs.
-  export GLOBAL_DDEV_LOCK=~/tmp/test-addon-ddev-playwright.lock
-  release_global_ddev
-
   export TESTDIR
   TESTDIR=$(mktemp -d "${HOME}/tmp/test-addon-ddev-playwright.XXXXXXXXX")
 
   export PROJNAME=test-addon-ddev-playwright-${BATS_SUITE_TEST_NUMBER}
   export DDEV_NON_INTERACTIVE=true
 
-  wait_for_global_ddev
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
   cd "${TESTDIR}"
   mkdir -p web
@@ -45,17 +23,6 @@ setup() {
 
   echo "# ddev start" >&3
   ddev start -y >/dev/null
-  release_global_ddev
-}
-
-wait_for_global_ddev() {
-  while ! (set -o noclobber ; echo > "$GLOBAL_DDEV_LOCK"); do
-    sleep 1
-  done
-}
-
-release_global_ddev() {
-  rm -f "$GLOBAL_DDEV_LOCK"
 }
 
 health_checks() {
@@ -68,7 +35,6 @@ teardown() {
   cd "${TESTDIR}" || ( printf "unable to cd to %s\n" "${TESTDIR}" && exit 1 )
   wait_for_global_ddev
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1
-  release_global_ddev
   [ "${TESTDIR}" != "" ] && rm -rf "${TESTDIR}"
 }
 
