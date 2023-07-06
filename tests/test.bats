@@ -9,6 +9,7 @@ setup() {
 
   export TESTDIR
   TESTDIR=$(mktemp -d "${HOME}/tmp/test-addon-ddev-playwright.XXXXXXXXX")
+  echo "# testdir is ${TESTDIR}" >&3
 
   export PROJNAME=test-addon-ddev-playwright-${BATS_SUITE_TEST_NUMBER}
   export DDEV_NON_INTERACTIVE=true
@@ -16,6 +17,7 @@ setup() {
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
   cd "${TESTDIR}"
   mkdir -p web
+  echo "# configuring project..." >&3
   ddev config --project-name="${PROJNAME}" --docroot=web --project-type=php
 
   # Traefik is required for basic auth to pass through to KasmVNC correctly.
