@@ -23,8 +23,6 @@ env:
   NIGHTLY_DDEV_PR_URL: "https://nightly.link/ddev/ddev/actions/runs/1720215802/ddev-linux-amd64.zip"
   # Allow ddev get to use a github token to prevent rate limiting by tests
   DDEV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  # Allow `--HEAD` flag when running tests against HEAD
-  HOMEBREW_NO_INSTALL_FROM_API: 1
 
 jobs:
   tests:
@@ -47,6 +45,7 @@ jobs:
       uses: Homebrew/actions/setup-homebrew@master
     - name: Environment setup
       run: |
+        brew update && brew upgrade
         brew install mkcert
         mkcert -install
         git submodule init
@@ -82,7 +81,7 @@ jobs:
       if: github.event.inputs.debug_enabled == 'true'
 
     - name: tests
-      run: ./tests/bats/bin/bats tests
+      run: ./tests/bats/bin/bats -t tests
 
     # keepalive-workflow adds a dummy commit if there's no other action here, keeps
     # GitHub from turning off tests after 60 days
