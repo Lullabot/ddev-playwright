@@ -40,7 +40,6 @@ health_checks() {
 teardown() {
   set -eu -o pipefail
   cd "${TESTDIR}" || ( printf "unable to cd to %s\n" "${TESTDIR}" && exit 1 )
-  wait_for_global_ddev
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1
   [ "${TESTDIR}" != "" ] && rm -rf "${TESTDIR}"
 }
