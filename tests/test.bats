@@ -5,6 +5,8 @@ setup() {
   export DIR
   DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
 
+  export DDEV_NON_INTERACTIVE=true
+
   echo "# user is ${USER}" >&3
 
   export TESTDIR
