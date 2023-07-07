@@ -12,6 +12,7 @@ setup() {
   export TESTDIR
   #TESTDIR=$(mktemp -d "${HOME}/tmp/test-addon-ddev-playwright.XXXXXXXXX")
   export TESTDIR=~/tmp/test-addon-template
+  mkdir -p ${TESTDIR}
   echo "# testdir is ${TESTDIR}" >&3
 
   export PROJNAME=test-addon-ddev-playwright-${BATS_SUITE_TEST_NUMBER}
