@@ -3,6 +3,8 @@
 # the build.
 RUN mv /etc/apt/apt.conf.d/docker-clean /etc/apt/docker-clean-disabled
 
+RUN apt-get update
+
 # Install Playwright browsers and system dependencies.
 #
 # Manual changes to Dockerfile.playwright will be reverted every time ddev
