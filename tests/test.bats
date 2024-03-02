@@ -54,6 +54,7 @@ get_addon() {
   assert [ -f .ddev/commands/web/playwright ]
   assert [ -f .ddev/web-build/.gitignore ]
   assert [ -f .ddev/web-build/disabled.Dockerfile.playwright ]
+  assert [ -x .ddev/web-build/install-kasmvnc.sh ]
   assert [ -f .ddev/web-build/kasmvnc.yaml ]
   assert [ -f .ddev/web-build/xstartup ]
   mkdir test

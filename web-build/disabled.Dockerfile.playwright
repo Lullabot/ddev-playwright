@@ -3,6 +3,8 @@
 # the build.
 RUN mv /etc/apt/apt.conf.d/docker-clean /etc/apt/docker-clean-disabled
 
+RUN apt-get update
+
 # Install Playwright browsers and system dependencies.
 #
 # Manual changes to Dockerfile.playwright will be reverted every time ddev
@@ -51,10 +53,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     xauth
 
 # Install kasmvnc for remote access.
-RUN /bin/bash -c 'if [ $(arch) == "aarch64" ]; then KASM_ARCH=arm64; else KASM_ARCH=amd64; fi; wget https://github.com/kasmtech/KasmVNC/releases/download/v1.1.0/kasmvncserver_bullseye_1.1.0_${KASM_ARCH}.deb'
+COPY install-kasmvnc.sh /usr/local/bin
+RUN chmod +x /usr/local/bin/install-kasmvnc.sh
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
-  sudo apt-get install -y ./kasmvncserver*.deb
+  install-kasmvnc.sh
 
 # We can't add the user to the ssl-cert group. Rather, we can add them, but it
 # won't actually apply to ddev ssh / docker exec.

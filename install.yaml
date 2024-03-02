@@ -9,6 +9,7 @@ project_files:
   - commands/web/playwright
   - web-build/.gitignore
   - web-build/disabled.Dockerfile.playwright
+  - web-build/install-kasmvnc.sh
   - web-build/kasmvnc.yaml
   - web-build/xstartup
   - config.playwright.yml
