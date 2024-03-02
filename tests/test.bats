@@ -55,6 +55,8 @@ get_addon() {
   assert [ -f .ddev/web-build/.gitignore ]
   assert [ -f .ddev/web-build/disabled.Dockerfile.playwright ]
   assert [ -x .ddev/web-build/install-kasmvnc.sh ]
+  assert [ -f .ddev/web-build/Dockerfile.task ]
+  assert [ -x .ddev/web-build/install-task.sh ]
   assert [ -f .ddev/web-build/kasmvnc.yaml ]
   assert [ -f .ddev/web-build/xstartup ]
   mkdir test
@@ -64,6 +66,9 @@ verify_run_playwright() {
   cp -av "$DIR"/tests/testdata/web/* web/
   assert [ -f web/index.php ]
   ddev install-playwright
+
+  ddev exec -- which task
+
   mkdir -p test/playwright/tests
   cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
   health_checks
