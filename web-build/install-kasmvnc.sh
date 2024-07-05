@@ -1,4 +1,5 @@
 #!/bin/bash
+#ddev-generated
 
 if [ $(arch) == "aarch64" ]; then
   KASM_ARCH=arm64

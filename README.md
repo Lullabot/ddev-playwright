@@ -33,10 +33,6 @@ ddev exec -d /var/www/html/test/playwright npm init playwright@latest
 # Or yarn.
 ddev exec -d /var/www/html/test/playwright yarn create playwright
 
-# Required for KasmVNC to work until ddev 1.22 is released.
-# https://ddev.readthedocs.io/en/latest/users/configuration/experimental/
-ddev config global --use-traefik
-
 # Add ignoreHTTPSErrors: true in test/playwright/playwright.config.ts to support HTTPS in tests.
 # Now, install playwright dependencies and cache them for later.
 ddev install-playwright
