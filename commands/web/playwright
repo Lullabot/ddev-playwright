@@ -6,5 +6,5 @@ cd test/playwright || exit 1
 if [ -f yarn.lock ]; then
   yarn && yarn playwright "$@"
 else
-  npx playwright "$@"
+  npm ci && npx playwright "$@"
 fi
