@@ -15,3 +15,6 @@ project_files:
   - web-build/kasmvnc.yaml
   - web-build/xstartup
   - config.playwright.yml
+
+removal_actions:
+- if grep "#ddev-generated" web-build/Dockerfile.playwright 2>/dev/null; then rm web-build/Dockerfile.playwright; fi
