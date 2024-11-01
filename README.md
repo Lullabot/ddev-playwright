@@ -24,7 +24,7 @@ Highlights include:
 ## Getting started
 
 ```console
-ddev get deviantintegral/ddev-playwright
+ddev get Lullabot/ddev-playwright
 git add .
 git add -f .ddev/config.playwright.yml
 mkdir -p test/playwright
