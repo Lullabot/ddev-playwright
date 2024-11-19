@@ -79,8 +79,8 @@ verify_run_playwright() {
   # Verify that browsers have been downloaded.
   ddev exec -- ls \~/.cache/ms-playwright
   run ddev exec -- ls \~/.cache/ms-playwright \| wc -l \| sed \'s/ *//\'
-  # Playwright currently supports 4 browsers.
-  assert_output 4
+  # Playwright currently supports 5 browsers.
+  assert_output 5
 
   # Verify we can run an example test.
   ddev playwright test --reporter=line
