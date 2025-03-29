@@ -56,6 +56,5 @@ The following services are exposed with this addon:
 [julienloizelet/ddev-playwright](https://github.com/julienloizelet/ddev-playwright) was a great inspiration for this work. It uses Playwright containers built by Microsoft for tests. [A few questions on the implementation](https://github.com/julienloizelet/ddev-playwright/issues/3) has some notes on the differences in the implementations. The main differences are:
 
 1. This addon stacks Playwright and KasmVNC into the web container. This makes accessing the system being tested (like Drupal) much easier. For example, with a Drupal site Playwright can easily call `drush` or other CLI tools to set up tests.
-2. The official containers do not ship with any sort of remote access to the Playwright UI. This repository includes KasmVNC to run tests in headed mode or to generate code.
+2. The official Playwright containers do not ship with any sort of remote access to the Playwright UI. This repository (as well as `julienloizelet/ddev-playwright`) includes KasmVNC to run tests in headed mode or to generate code.
 3. By stacking Playwright into the web container, it simplifies permissions for writing Playwright's test reports back out.
-4. We hope to be able to integrate [chanzuckerberg/axe-storybook-testing](https://github.com/chanzuckerberg/axe-storybook-testing) in the future, which should be simplier with having Playwright's dependencies combined into the current project.
