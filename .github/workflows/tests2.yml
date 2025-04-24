@@ -1,0 +1,16 @@
+name: tests
+on:
+  pull_request:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Test Shell
+      run: echo "Hello!"
