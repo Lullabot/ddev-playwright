@@ -1,6 +1,6 @@
 [![tests](https://github.com/deviantintegral/ddev-playwright/actions/workflows/tests.yml/badge.svg)](https://github.com/deviantintegral/ddev-playwright/actions/workflows/tests.yml)
 
-# ddev-playwright <!-- omit in toc -->
+# ddev-playwright! <!-- omit in toc -->
 
 ![example in action](images/demo.webp)
 _Example test validating phpinfo(), slowed down for the demo._
