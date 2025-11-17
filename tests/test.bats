@@ -96,7 +96,6 @@ verify_run_playwright() {
 @test "install from directory with yarn" {
   get_addon
   cp -av "$DIR"/tests/testdata/yarn-playwright test/playwright
-  corepack enable
   verify_run_playwright
 }
 
