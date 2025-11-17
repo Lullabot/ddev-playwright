@@ -38,6 +38,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   && cd /var/www/html/test/playwright \
   && if [ -f yarn.lock ]; then \
        export JS_PKG_MANAGER=yarn; \
+       corepack enable;
        sudo -u $username $JS_PKG_MANAGER; \
      else \
        export JS_PKG_MANAGER=npx; \
