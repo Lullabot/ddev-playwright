@@ -9,7 +9,8 @@ hooks:
         if [[ -f .ddev/web-build/Dockerfile.playwright ]]
         then
           rm -rf .ddev/web-build/playwright
-          cp -r test/playwright .ddev/web-build/
+          PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
+          cp -r "$PLAYWRIGHT_TEST_DIR" .ddev/web-build/playwright
         fi
   post-start:
     # Clean up the playwright directory copied for builds.

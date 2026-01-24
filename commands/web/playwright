@@ -1,7 +1,8 @@
 #!/bin/sh
 #ddev-generated
 
-cd test/playwright || exit 1
+PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
+cd "$PLAYWRIGHT_TEST_DIR" || exit 1
 
 if [ -f yarn.lock ]; then
   yarn && yarn playwright "$@"

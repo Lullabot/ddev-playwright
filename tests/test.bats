@@ -65,8 +65,9 @@ verify_run_playwright() {
 
   ddev exec -- which task
 
-  mkdir -p test/playwright/tests
-  cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
+  PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
+  mkdir -p "$PLAYWRIGHT_TEST_DIR/tests"
+  cp "$DIR"/tests/testdata/phpinfo.spec.ts "$PLAYWRIGHT_TEST_DIR/tests/phpinfo.spec.ts"
   health_checks
 
   # Verify kasmvnc is listening.
@@ -88,14 +89,16 @@ verify_run_playwright() {
 
 @test "install from directory with npm" {
   get_addon
-  cp -av "$DIR"/tests/testdata/npm-playwright test/playwright
-  ddev exec -d /var/www/html/test/playwright npm ci
+  PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
+  cp -av "$DIR"/tests/testdata/npm-playwright "$PLAYWRIGHT_TEST_DIR"
+  ddev exec -d /var/www/html/"$PLAYWRIGHT_TEST_DIR" npm ci
   verify_run_playwright
 }
 
 @test "install from directory with yarn" {
   get_addon
-  cp -av "$DIR"/tests/testdata/yarn-playwright test/playwright
+  PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
+  cp -av "$DIR"/tests/testdata/yarn-playwright "$PLAYWRIGHT_TEST_DIR"
   verify_run_playwright
 }
 

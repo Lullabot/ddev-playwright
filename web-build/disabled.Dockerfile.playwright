@@ -11,7 +11,7 @@ RUN apt-get update
 # start is run. In general, edit this file instead.
 #
 # We want to install whatever browsers are used by the currently locked version
-# of playwright in test/playwright. What this does is:
+# of playwright in the configured test directory. What this does is:
 #
 # 1. Creates a copy of the playwright directory in the image. We need this
 #    because Playwright keeps a hidden .links/<hash> file with the path of
@@ -26,16 +26,18 @@ RUN apt-get update
 #    it is persisted in the image.
 #
 # See https://github.com/ddev/ddev/issues/4727.
+ARG PLAYWRIGHT_TEST_DIR=test/playwright
+ENV PLAYWRIGHT_TEST_DIR=${PLAYWRIGHT_TEST_DIR}
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   --mount=type=cache,target=/dot-cache,sharing=locked \
   --mount=type=bind,source=./playwright,target=/playwright \
-  sudo -u $username mkdir -p /var/www/html/test \
-  && cp -a /playwright /var/www/html/test \
-  && chown -R $username:$username /var/www/html/test/playwright \
+  sudo -u $username mkdir -p "/var/www/html/$(dirname ${PLAYWRIGHT_TEST_DIR})" \
+  && cp -a /playwright "/var/www/html/${PLAYWRIGHT_TEST_DIR}" \
+  && chown -R $username:$username "/var/www/html/${PLAYWRIGHT_TEST_DIR}" \
   && chown -R $username:$username /dot-cache \
   && sudo -u $username ln -s /dot-cache /home/$username/.cache \
-  && cd /var/www/html/test/playwright \
+  && cd "/var/www/html/${PLAYWRIGHT_TEST_DIR}" \
   && if [ -f yarn.lock ]; then \
        export JS_PKG_MANAGER=yarn; \
        corepack enable; \
@@ -46,7 +48,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
      fi \
   && sudo -u $username $JS_PKG_MANAGER playwright install-deps \
   && sudo -u $username $JS_PKG_MANAGER playwright install \
-  && rm -rf /var/www/html/test/playwright \
+  && rm -rf "/var/www/html/${PLAYWRIGHT_TEST_DIR}" \
   && rm /home/$username/.cache \
   && sudo -u $username mkdir -p /home/$username/.cache \
   && sudo -u $username cp -a /dot-cache/* /home/$username/.cache/

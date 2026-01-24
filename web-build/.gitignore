@@ -1,5 +1,5 @@
 #ddev-generated
-# This directory is always copied from /test/playwright.
+# This directory is always copied from ${PLAYWRIGHT_TEST_DIR:-test/playwright}.
 playwright
 
 # This file is optionally copied to enable playwright from

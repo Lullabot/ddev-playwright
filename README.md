@@ -27,13 +27,13 @@ Highlights include:
 ddev add-on get Lullabot/ddev-playwright
 git add .
 git add -f .ddev/config.playwright.yml
-mkdir -p test/playwright
+mkdir -p ${PLAYWRIGHT_TEST_DIR:-test/playwright}
 # To install with npm.
-ddev exec -d /var/www/html/test/playwright npm init playwright@latest
+ddev exec -d /var/www/html/${PLAYWRIGHT_TEST_DIR:-test/playwright} npm init playwright@latest
 # Or yarn.
-ddev exec -d /var/www/html/test/playwright yarn create playwright
+ddev exec -d /var/www/html/${PLAYWRIGHT_TEST_DIR:-test/playwright} yarn create playwright
 
-# Add ignoreHTTPSErrors: true in test/playwright/playwright.config.ts to support HTTPS in tests.
+# Add ignoreHTTPSErrors: true in ${PLAYWRIGHT_TEST_DIR:-test/playwright}/playwright.config.ts to support HTTPS in tests.
 # Now, install playwright dependencies and cache them for later.
 ddev install-playwright
 # To run playwright's test command.
@@ -42,6 +42,22 @@ ddev playwright test
 ddev playwright test --headed
 # To generate playwright code by browsing.
 ddev playwright codegen
+
+### Playwright testing directory
+
+All commands in this add-on run from the directory pointed to by the `PLAYWRIGHT_TEST_DIR` environment variable inside the web container. By default this is `test/playwright`, but you can override it in an override docker-compose file in the `.ddev` directory (recommended so updates won't clobber your change):
+
+```yaml
+version: '3.8'
+services:
+  web:
+    environment:
+      - PLAYWRIGHT_TEST_DIR=your/playwright/directory/path
+    volumes:
+      - ./your/playwright/directory/path:/var/www/html/your/playwright/directory/path
+```
+
+If you prefer to use your project root for tests, set `PLAYWRIGHT_TEST_DIR=./` and mount the project root into `/var/www/html` accordingly.
 ```
 
 The following services are exposed with this addon:
