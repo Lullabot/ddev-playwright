@@ -5,7 +5,7 @@ name: ddev-playwright
 # if it hasn't been modified by the user.
 # DDEV environment variables can be interpolated into these filenames
 project_files:
-  - commands/host/install-playwright
+  - commands/web/install-playwright
   - commands/web/playwright-init
   - commands/web/playwright
   - web-build/.gitignore
