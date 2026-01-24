@@ -3,5 +3,3 @@ services:
   web:
     environment:
       - PLAYWRIGHT_TEST_DIR=my-e2e/playwright
-    volumes:
-      - ./my-e2e/playwright:/var/www/html/my-e2e/playwright
