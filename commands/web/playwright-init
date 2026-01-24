@@ -1,4 +1,5 @@
 #!/bin/bash
+#ddev-generated
 # Initialize a Playwright project interactively inside the test dir.
 # Usage: ddev playwright-init [--pm npm|yarn]
 

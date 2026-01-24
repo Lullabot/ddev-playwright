@@ -1,4 +1,5 @@
 #!/bin/bash
+#ddev-generated
 # Install Playwright npm/yarn deps and trigger Playwright-enabled web rebuild.
 # Usage: ddev playwright-install [--pm npm|yarn]
 
