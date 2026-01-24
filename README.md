@@ -46,12 +46,17 @@ ddev add-on get Lullabot/ddev-playwright
 git add .
 git add -f .ddev/config.playwright.yml
 mkdir -p <your/playwright/directory/path>
-# To install with npm.
-ddev exec -d /var/www/html/${PLAYWRIGHT_TEST_DIR:-test/playwright} npm init playwright@latest
-# Or yarn.
-ddev exec -d /var/www/html/${PLAYWRIGHT_TEST_DIR:-test/playwright} yarn create playwright
+# To install with npm (interactive).
+ddev playwright-init --pm npm
+# Or yarn (interactive).
+ddev playwright-init --pm yarn
 
-# Add ignoreHTTPSErrors: true in ${PLAYWRIGHT_TEST_DIR:-test/playwright}/playwright.config.ts to support HTTPS in tests.
+# Add ignoreHTTPSErrors: true in ${PLAYWRIGHT_TEST_DIR}/playwright.config.ts to support HTTPS in tests.
+
+# To install Playwright dependencies from a package.json file and rebuild the web container with browsers:
+ddev playwright-install --pm npm
+# Or (default: npm):
+ddev playwright-install
 # Now, install playwright dependencies and cache them for later.
 ddev install-playwright
 # To run playwright's test command.
