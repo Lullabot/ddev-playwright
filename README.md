@@ -53,10 +53,6 @@ ddev playwright-init --pm yarn
 
 # Add ignoreHTTPSErrors: true in ${PLAYWRIGHT_TEST_DIR}/playwright.config.ts to support HTTPS in tests.
 
-# To install Playwright dependencies from a package.json file and rebuild the web container with browsers:
-ddev playwright-install --pm npm
-# Or (default: npm):
-ddev playwright-install
 # Now, install playwright dependencies and cache them for later.
 ddev install-playwright
 # To run playwright's test command.
