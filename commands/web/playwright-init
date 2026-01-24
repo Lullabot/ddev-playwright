@@ -29,12 +29,13 @@ done
 mkdir -p "$PLAYWRIGHT_TEST_DIR"
 
 echo "Initializing Playwright in $PLAYWRIGHT_TEST_DIR (interactive)."
+cd $PLAYWRIGHT_TEST_DIR
 if [ "$PM" = "npm" ]; then
   echo "Running: npm init playwright@latest"
-  ddev exec -d /var/www/html/"$PLAYWRIGHT_TEST_DIR" npm init playwright@latest
+  npm init playwright@latest
 else
   echo "Running: yarn create playwright"
-  ddev exec -d /var/www/html/"$PLAYWRIGHT_TEST_DIR" yarn create playwright
+  yarn create playwright
 fi
 
 echo "Playwright initialization done. Add ignoreHTTPSErrors: true to your playwright.config.ts if needed."

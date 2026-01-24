@@ -7,7 +7,6 @@ name: ddev-playwright
 project_files:
   - commands/host/install-playwright
   - commands/web/playwright-init
-  - commands/web/playwright-install
   - commands/web/playwright
   - web-build/.gitignore
   - web-build/disabled.Dockerfile.playwright

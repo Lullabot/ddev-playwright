@@ -2,7 +2,6 @@
 #ddev-generated
 
 PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
-mkdir -p "$PLAYWRIGHT_TEST_DIR"
 if [ ! -f "$PLAYWRIGHT_TEST_DIR/package.json" ]; then
   echo "No playwright installation exists at $PLAYWRIGHT_TEST_DIR."
   # https://github.com/microsoft/playwright/issues/11843
