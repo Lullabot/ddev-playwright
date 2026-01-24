@@ -91,7 +91,7 @@ verify_run_playwright() {
   get_addon
   PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
   cp -av "$DIR"/tests/testdata/npm-playwright "$PLAYWRIGHT_TEST_DIR"
-  ddev exec -d /var/www/html/"$PLAYWRIGHT_TEST_DIR" npm ci
+  ddev playwright-install --pm npm
   verify_run_playwright
 }
 
@@ -99,6 +99,7 @@ verify_run_playwright() {
   get_addon
   PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
   cp -av "$DIR"/tests/testdata/yarn-playwright "$PLAYWRIGHT_TEST_DIR"
+  ddev playwright-install --pm yarn
   verify_run_playwright
 }
 
