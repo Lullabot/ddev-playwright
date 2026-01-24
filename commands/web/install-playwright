@@ -8,7 +8,7 @@ if [ ! -f "$PLAYWRIGHT_TEST_DIR/package.json" ]; then
   echo "Playwright does not support a non-interactive setup and must be done manually."
   echo ""
   echo "Run the following to use npm:"
-  echo "  ddev playwright-init
+  echo "  ddev playwright-init"
   echo ""
   echo "Run the following to use yarn instead:"
   echo "  ddev playwright-init --pm yarn"
