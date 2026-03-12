@@ -24,6 +24,18 @@ if [ ! -f test/playwright/package.json ]; then
   exit 1
 fi
 
+# Validate that the package.json actually contains a Playwright dependency.
+if ! grep -qE '"@playwright/test"|"playwright"' test/playwright/package.json; then
+  echo "Error: test/playwright/package.json does not contain @playwright/test or playwright as a dependency."
+  echo ""
+  echo "Please initialize Playwright first by running one of:"
+  echo "  ddev exec -d /var/www/html/test/playwright npm init playwright@latest"
+  echo "  ddev exec -d /var/www/html/test/playwright yarn create playwright"
+  echo ""
+  echo "When done, run: ddev install-playwright"
+  exit 1
+fi
+
 # ddev errors out on subsequent builds if we symlink these files. Instead, we
 # copy them each time.
 echo "Rebuilding web service with playwright dependencies..."

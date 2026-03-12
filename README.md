@@ -24,19 +24,33 @@ Highlights include:
 
 ## Getting started
 
+The full setup workflow is:
+
+1. **Install the addon** and commit the generated configuration.
+2. **Initialize Playwright** inside the container (creates `package.json`, config, etc.).
+4. **Run `ddev install-playwright`** to rebuild the web service with browser dependencies.
+
+> **Tip:** Re-run `ddev restart` any time you update the Playwright
+> version in `test/playwright/package.json` so the matching browser binaries are
+> installed.
+
 ```console
+# 1. Install the addon.
 ddev add-on get Lullabot/ddev-playwright
 git add .
 git add -f .ddev/config.playwright.yml
+
+# 2. Initialize Playwright (choose npm or yarn).
 mkdir -p test/playwright
-# To install with npm.
 ddev exec -d /var/www/html/test/playwright npm init playwright@latest
-# Or yarn.
-ddev exec -d /var/www/html/test/playwright yarn create playwright
+# Or yarn:
+# ddev exec -d /var/www/html/test/playwright yarn create playwright
 
 # Add ignoreHTTPSErrors: true in test/playwright/playwright.config.ts to support HTTPS in tests.
-# Now, install playwright dependencies and cache them for later.
+
+# 3. Install Playwright browser dependencies and cache them.
 ddev install-playwright
+
 # To run playwright's test command.
 ddev playwright test
 # To run with the UI.
