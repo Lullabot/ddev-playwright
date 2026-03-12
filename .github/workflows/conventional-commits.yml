@@ -14,7 +14,7 @@ permissions:
 jobs:
   validate-pr-title:
     name: Validate PR title
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: amannn/action-semantic-pull-request@v6
         env:
@@ -32,9 +32,11 @@ jobs:
 
   validate-commits:
     name: Validate commit messages
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: webiny/action-conventional-commits@v1.3.0
+        with:
+          allowed-commit-types: chore,ci,docs,feat,fix,refactor,revert,test
