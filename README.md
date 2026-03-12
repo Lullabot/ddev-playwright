@@ -7,6 +7,7 @@ _Example test validating phpinfo(), slowed down for the demo._
 
 * [What is ddev-playwright?](#what-is-ddev-playwright)
 * [Getting started](#getting-started)
+* [Contributing](#contributing)
 
 ## What is ddev-playwright?
 
@@ -50,6 +51,23 @@ The following services are exposed with this addon:
 |-------------------------|-----------------------------------|--------------------------------------------------------------------------------------------|
 | KasmVNC                 | https://\<PROJECT>.ddev.site:8444 | Username is your local username. Password is `secret`.                                     |
 | Playwright Test Reports | https://\<PROJECT>.ddev.site:9324 | This port is changed from the default to not conflict with running Playwright on the host. |
+
+## Contributing
+
+This project uses [conventional commits](https://www.conventionalcommits.org/)
+for all commit messages. A [pre-commit](https://pre-commit.com/) hook is
+included to validate commit messages locally before pushing.
+
+To install pre-commit:
+
+```console
+pip install pre-commit
+pre-commit install
+pre-commit install --hook-type commit-msg
+```
+
+If you use Claude Code or GitHub Copilot, pre-commit is installed
+automatically when a session starts.
 
 ## Similar Tools
 
