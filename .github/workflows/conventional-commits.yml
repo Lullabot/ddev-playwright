@@ -37,6 +37,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - uses: webiny/action-conventional-commits@v1.3.0
+      - uses: webiny/action-conventional-commits@v1.3.1
         with:
           allowed-commit-types: chore,ci,docs,feat,fix,refactor,revert,test
