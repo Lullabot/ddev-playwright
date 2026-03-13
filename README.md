@@ -7,6 +7,7 @@ _Example test validating phpinfo(), slowed down for the demo._
 
 * [What is ddev-playwright?](#what-is-ddev-playwright)
 * [Getting started](#getting-started)
+* [SQLite tmpfs mount](#sqlite-tmpfs-mount)
 * [Contributing](#contributing)
 
 ## What is ddev-playwright?
@@ -70,6 +71,15 @@ The following services are exposed with this addon:
 |-------------------------|-----------------------------------|--------------------------------------------------------------------------------------------|
 | KasmVNC                 | https://\<PROJECT>.ddev.site:8444 | Username is your local username. Password is `secret`.                                     |
 | Playwright Test Reports | https://\<PROJECT>.ddev.site:9324 | This port is changed from the default to not conflict with running Playwright on the host. |
+
+## SQLite tmpfs mount
+
+This addon mounts `/tmp/sqlite` as a tmpfs (in-memory) volume. The
+[`@lullabot/playwright-drupal`](https://www.npmjs.com/package/@lullabot/playwright-drupal)
+package uses this path for per-test SQLite database copies, and keeping
+the I/O in memory significantly improves parallel test performance. Feel free to use it for your own database driven tests.
+
+Because tmpfs is volatile, `ddev restart` will clear the volume.
 
 ## Contributing
 
