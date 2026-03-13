@@ -1,0 +1,14 @@
+#ddev-generated
+# Move the SQLite test database to a tmpfs mount for faster I/O during
+# Playwright tests. With this, ddev restart will reset the database!
+services:
+  web:
+    volumes:
+      - source: sqlite_database
+        target: /tmp/sqlite
+        type: volume
+volumes:
+  sqlite_database:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
