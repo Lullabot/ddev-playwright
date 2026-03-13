@@ -10,6 +10,7 @@ project_files:
   - web-build/.gitignore
   - web-build/disabled.Dockerfile.playwright
   - web-build/Dockerfile.task
+  - web-build/Dockerfile.uv
   - web-build/install-task.sh
   - web-build/install-kasmvnc.sh
   - web-build/kasmvnc.yaml

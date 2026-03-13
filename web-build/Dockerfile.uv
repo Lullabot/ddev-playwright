@@ -1,0 +1,4 @@
+#ddev-generated
+# Install uv Python tool runner for running Python-based tools like
+# mysql-to-sqlite3 without polluting the system Python environment.
+RUN curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR=/usr/local/bin sh
