@@ -15,70 +15,20 @@ on:
         required: false
         default: false
 
-defaults:
-  run:
-    shell: bash
-
-env:
-  NIGHTLY_DDEV_PR_URL: "https://nightly.link/ddev/ddev/actions/runs/1720215802/ddev-linux-amd64.zip"
-  # Allow ddev get to use a github token to prevent rate limiting by tests
-  DDEV_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   tests:
-    defaults:
-      run:
-        shell: bash
-
     strategy:
       matrix:
         ddev_version: [stable, HEAD]
-#        ddev_version: [stable, edge, HEAD, PR]
       fail-fast: false
 
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-    - name: Set up Homebrew
-      id: set-up-homebrew
-      uses: Homebrew/actions/setup-homebrew@master
-    - name: Environment setup
-      run: |
-        brew update && brew upgrade
-        brew install mkcert
-        mkcert -install
-        git submodule init
-        git submodule update
-
-    - name: Use ddev stable
-      if: matrix.ddev_version == 'stable'
-      run: brew install ddev/ddev/ddev
-
-    - name: Use ddev edge
-      if: matrix.ddev_version == 'edge'
-      run: brew install ddev/ddev-edge/ddev
-
-    - name: Use ddev HEAD
-      if: matrix.ddev_version == 'HEAD'
-      run: brew install --HEAD ddev/ddev/ddev
-
-    - name: Use ddev PR
-      if: matrix.ddev_version == 'PR'
-      run: |
-        curl -sSL -o ddev_linux.zip ${NIGHTLY_DDEV_PR_URL}
-        unzip ddev_linux.zip
-        mv ddev /usr/local/bin/ddev && chmod +x /usr/local/bin/ddev
-
-    - name: Download docker images
-      run: mkdir junk && pushd junk && ddev config --auto && ddev debug download-images >/dev/null
-
-    - name: tmate debugging session
-      uses: mxschmitt/action-tmate@c0afd6f790e3a5564914980036ebf83216678101 # v3
+    - uses: ddev/github-action-add-on-test@v2
       with:
-        limit-access-to-actor: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-      if: github.event.inputs.debug_enabled == 'true'
-
-    - name: tests
-      run: ./tests/bats/bin/bats -t tests
+        ddev_version: ${{ matrix.ddev_version }}
+        addon_repository: ${{ github.repository }}
+        addon_ref: ${{ github.ref }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+        debug_enabled: ${{ github.event.inputs.debug_enabled || false }}

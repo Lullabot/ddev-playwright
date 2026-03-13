@@ -1,7 +1,9 @@
 setup() {
   set -eu -o pipefail
-  load 'test_helper/bats-support/load'
-  load 'test_helper/bats-assert/load'
+  TEST_BREW_PREFIX="$(brew --prefix 2>/dev/null || true)"
+  export BATS_LIB_PATH="${BATS_LIB_PATH:-}:${TEST_BREW_PREFIX}/lib:/usr/lib/bats"
+  bats_load_library 'bats-support'
+  bats_load_library 'bats-assert'
   export DIR
   DIR="$( cd "$( dirname "$BATS_TEST_FILENAME" )" >/dev/null 2>&1 && pwd )/.."
 
