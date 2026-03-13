@@ -77,10 +77,9 @@ The following services are exposed with this addon:
 This addon mounts `/tmp/sqlite` as a tmpfs (in-memory) volume. The
 [`@lullabot/playwright-drupal`](https://www.npmjs.com/package/@lullabot/playwright-drupal)
 package uses this path for per-test SQLite database copies, and keeping
-the I/O in memory significantly improves parallel test performance.
+the I/O in memory significantly improves parallel test performance. Feel free to use it for your own database driven tests.
 
-Because tmpfs is volatile, `ddev restart` will clear the volume — this
-is expected, since `playwright:install` recreates the base database.
+Because tmpfs is volatile, `ddev restart` will clear the volume.
 
 ## Contributing
 
