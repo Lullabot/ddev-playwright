@@ -32,4 +32,3 @@ jobs:
         addon_ref: ${{ github.ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
         debug_enabled: ${{ github.event.inputs.debug_enabled || false }}
-        test_command: bats tests
