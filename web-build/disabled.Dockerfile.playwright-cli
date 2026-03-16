@@ -5,10 +5,13 @@ RUN mv /etc/apt/apt.conf.d/docker-clean /etc/apt/docker-clean-disabled
 
 RUN apt-get update
 
-# Install @playwright/cli and its bundled Chromium browser.
+# Install @playwright/cli globally as the ddev user, then install its Chromium
+# browser. We split install-deps (needs root for apt-get internally) from the
+# browser download (writes to ~/.cache/ms-playwright/).
 #
-# Manual changes to Dockerfile.playwright-cli will be reverted every time ddev
-# start is run. In general, edit this file instead.
+# @playwright/cli pins its own playwright-core version, so its browser
+# requirements are independent of whatever @playwright/test version the
+# project uses.
 #
 # 1. $username doesn't work in --mount... lines as it's a shell variable set by
 #    ddev. Instead, we mount the .cache cache into /dot-cache, and symlink it
@@ -22,8 +25,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/dot-cache,sharing=locked \
   chown -R $username:$username /dot-cache \
   && sudo -u $username ln -s /dot-cache /home/$username/.cache \
-  && npm install -g @playwright/cli@latest \
-  && sudo -u $username playwright-cli install --with-deps chromium \
+  && sudo -u $username npm install -g @playwright/cli@latest \
+  && sudo -u $username playwright-cli install-deps chromium \
+  && sudo -u $username playwright-cli install chromium \
   && rm /home/$username/.cache \
   && sudo -u $username mkdir -p /home/$username/.cache \
   && sudo -u $username cp -a /dot-cache/* /home/$username/.cache/
