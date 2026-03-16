@@ -26,8 +26,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   chown -R $username:$username /dot-cache \
   && sudo -u $username ln -s /dot-cache /home/$username/.cache \
   && sudo -u $username npm install -g @playwright/cli@latest \
-  && sudo -u $username playwright-cli install-deps chromium \
-  && sudo -u $username playwright-cli install chromium \
+  && PW_BIN="$(sudo -u $username npm root -g)/@playwright/cli/node_modules/.bin/playwright" \
+  && sudo -u $username "$PW_BIN" install-deps chromium \
+  && sudo -u $username "$PW_BIN" install chromium \
   && rm /home/$username/.cache \
   && sudo -u $username mkdir -p /home/$username/.cache \
   && sudo -u $username cp -a /dot-cache/* /home/$username/.cache/
