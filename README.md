@@ -8,6 +8,7 @@ _Example test validating phpinfo(), slowed down for the demo._
 * [What is ddev-playwright?](#what-is-ddev-playwright)
 * [Getting started](#getting-started)
 * [SQLite tmpfs mount](#sqlite-tmpfs-mount)
+* [Playwright CLI for AI coding agents](#playwright-cli-for-ai-coding-agents)
 * [Contributing](#contributing)
 
 ## What is ddev-playwright?
@@ -80,6 +81,59 @@ package uses this path for per-test SQLite database copies, and keeping
 the I/O in memory significantly improves parallel test performance. Feel free to use it for your own database driven tests.
 
 Because tmpfs is volatile, `ddev restart` will clear the volume.
+
+## Playwright CLI for AI coding agents
+
+[Playwright CLI](https://github.com/microsoft/playwright-cli) is a
+token-efficient command-line tool designed for AI coding agents such as Claude
+Code, GitHub Copilot, and Cursor. It lets agents interact with Playwright
+browsers through simple shell commands instead of writing full test scripts.
+
+### Installation
+
+Run the following command to install the CLI and its bundled Chromium browser:
+
+```console
+ddev install-playwright-cli
+```
+
+This copies the Playwright CLI Dockerfile into your build directory and restarts
+the web container.
+
+### Usage
+
+All Playwright CLI commands are available through `ddev playwright-cli`:
+
+```console
+# Open a URL in the browser.
+ddev playwright-cli open https://example.ddev.site
+
+# Take a snapshot of the current page (returns an accessibility tree).
+ddev playwright-cli snapshot
+
+# Click an element, fill a field, etc.
+ddev playwright-cli click --selector "text=Log in"
+ddev playwright-cli fill --selector "#edit-name" --value admin
+```
+
+Run `ddev playwright-cli --help` for the full list of commands.
+
+### Claude Code skills
+
+When Playwright CLI is installed, Claude Code skills are automatically set up on
+container start. This allows Claude Code to discover and use Playwright CLI
+commands without additional configuration.
+
+### Migration from ddev-playwright-cli
+
+If you previously used the standalone
+[ddev-playwright-cli](https://github.com/e0ipso/ddev-playwright-cli) addon,
+remove it before relying on the integrated version:
+
+```console
+ddev add-on remove e0ipso/ddev-playwright-cli
+ddev install-playwright-cli
+```
 
 ## Contributing
 

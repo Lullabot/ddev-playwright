@@ -110,6 +110,28 @@ verify_run_playwright() {
   assert_failure
 }
 
+@test "install playwright-cli from directory" {
+  set -eu -o pipefail
+  cd "${TESTDIR}"
+  echo "# ddev get ${DIR} with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
+  ddev get "${DIR}"
+  assert [ -f .ddev/web-build/disabled.Dockerfile.playwright-cli ]
+  assert [ -f .ddev/commands/host/install-playwright-cli ]
+  assert [ -f .ddev/commands/web/playwright-cli ]
+
+  ddev install-playwright-cli
+
+  # Verify playwright-cli is available.
+  ddev exec -- which playwright-cli
+
+  # Verify version output.
+  run ddev exec playwright-cli --version
+  assert_success
+
+  # Verify Claude Code skills were installed.
+  ddev exec -- ls .claude/skills/playwright-cli/
+}
+
 #@test "install from release" {
 #  set -eu -o pipefail
 #  cd ${TESTDIR} || ( printf "unable to cd to ${TESTDIR}\n" && exit 1 )
