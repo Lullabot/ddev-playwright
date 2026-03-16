@@ -9,6 +9,9 @@ project_files:
   - commands/web/playwright
   - web-build/.gitignore
   - web-build/disabled.Dockerfile.playwright
+  - web-build/disabled.Dockerfile.playwright-cli
+  - commands/host/install-playwright-cli
+  - commands/web/playwright-cli
   - web-build/Dockerfile.task
   - web-build/Dockerfile.uv
   - web-build/install-task.sh
@@ -20,3 +23,4 @@ project_files:
 
 removal_actions:
 - if grep "#ddev-generated" web-build/Dockerfile.playwright 2>/dev/null; then rm web-build/Dockerfile.playwright; fi
+- if grep "#ddev-generated" web-build/Dockerfile.playwright-cli 2>/dev/null; then rm web-build/Dockerfile.playwright-cli; fi

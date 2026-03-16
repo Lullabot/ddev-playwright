@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#ddev-generated
+
+echo "Rebuilding web service with Playwright CLI..."
+cp .ddev/web-build/disabled.Dockerfile.playwright-cli .ddev/web-build/Dockerfile.playwright-cli
+ddev restart

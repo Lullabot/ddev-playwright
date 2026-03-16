@@ -1,0 +1,4 @@
+#!/bin/sh
+#ddev-generated
+
+playwright-cli "$@"
