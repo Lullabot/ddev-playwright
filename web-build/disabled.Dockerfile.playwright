@@ -20,21 +20,31 @@ RUN apt-get update
 #    context is the web-build directory, we have a pre-start hook in
 #    config.yaml that copies in the current test files.
 # 2. $username doesn't work in --mount... lines as it's a shell variable set by
-#    ddev. Instead, we mount the .cache cache into /dot-cache, and symlink it
-#    in.
-# 3. Then we remove the symlink, and copy the cache directory into ~/.cache so
+#    ddev. Instead, we mount the .cache cache into /ms-playwright-cache, and
+#    symlink it in. We merge any existing ~/.cache content into the mount first
+#    (cp -an preserves existing cache entries) and then replace ~/.cache with a
+#    symlink. The merge step makes this order-independent with other Dockerfile
+#    instructions that may populate ~/.cache before this RUN executes.
+# 3. PLAYWRIGHT_SKIP_BROWSER_GC=1 prevents `playwright install` from removing
+#    browsers installed by a different playwright-core version (e.g.
+#    @playwright/cli from ddev-playwright-cli). Without this, playwright's
+#    built-in GC deletes any browsers not referenced by the current package.
+#    See https://github.com/microsoft/playwright/blob/7f55e117ce4d/packages/playwright-core/src/server/registry/index.ts#L1080-L1081
+# 4. Then we remove the symlink, and copy the cache directory into ~/.cache so
 #    it is persisted in the image.
 #
 # See https://github.com/ddev/ddev/issues/4727.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
-  --mount=type=cache,target=/dot-cache,sharing=locked \
+  --mount=type=cache,target=/ms-playwright-cache,sharing=locked \
   --mount=type=bind,source=./playwright,target=/playwright \
   sudo -u $username mkdir -p /var/www/html/test \
   && cp -a /playwright /var/www/html/test \
   && chown -R $username:$username /var/www/html/test/playwright \
-  && chown -R $username:$username /dot-cache \
-  && sudo -u $username ln -s /dot-cache /home/$username/.cache \
+  && chown -R $username:$username /ms-playwright-cache \
+  && cp -an /home/$username/.cache/* /ms-playwright-cache/ 2>/dev/null; \
+  rm -rf /home/$username/.cache \
+  && sudo -u $username ln -s /ms-playwright-cache /home/$username/.cache \
   && cd /var/www/html/test/playwright \
   && if [ -f yarn.lock ]; then \
        export JS_PKG_MANAGER=yarn; \
@@ -45,11 +55,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
        sudo -u $username npm install; \
      fi \
   && sudo -u $username $JS_PKG_MANAGER playwright install-deps \
-  && sudo -u $username $JS_PKG_MANAGER playwright install \
+  && sudo -u $username PLAYWRIGHT_SKIP_BROWSER_GC=1 $JS_PKG_MANAGER playwright install \
   && rm -rf /var/www/html/test/playwright \
   && rm /home/$username/.cache \
   && sudo -u $username mkdir -p /home/$username/.cache \
-  && sudo -u $username cp -a /dot-cache/* /home/$username/.cache/
+  && sudo -u $username cp -a /ms-playwright-cache/* /home/$username/.cache/
 
 # Install a window manager.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
