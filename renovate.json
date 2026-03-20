@@ -12,5 +12,13 @@
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "astral-sh/uv"
     }
+  ],
+  "automerge": true,
+  "minimumReleaseAge": "3 days",
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "automerge": false
+    }
   ]
 }
