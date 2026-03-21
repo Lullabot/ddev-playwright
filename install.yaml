@@ -7,7 +7,6 @@ name: ddev-playwright
 project_files:
   - commands/host/install-playwright
   - commands/web/playwright
-  - web-build/.gitignore
   - web-build/disabled.Dockerfile.playwright
   - web-build/Dockerfile.task
   - web-build/Dockerfile.uv
@@ -18,5 +17,24 @@ project_files:
   - config.playwright.yml
   - docker-compose.sqlite.yaml
 
+# Manage .gitignore entries via post_install_actions so other addons (e.g.
+# ddev-playwright-cli) can append their own entries without being overwritten.
+post_install_actions:
+  - |
+    #ddev-description:Add ddev-playwright entries to web-build .gitignore
+    GITIGNORE="${DDEV_APPROOT}/.ddev/web-build/.gitignore"
+    touch "$GITIGNORE"
+    if ! grep -qx "Dockerfile.playwright" "$GITIGNORE"; then
+      printf '\n# This file is optionally copied to enable playwright from\n# disabled.Dockerfile.playwright.\nDockerfile.playwright\n' >> "$GITIGNORE"
+    fi
+    if ! grep -qx "playwright" "$GITIGNORE"; then
+      printf '\n# This directory is always copied from /test/playwright.\nplaywright\n' >> "$GITIGNORE"
+    fi
+
 removal_actions:
 - if grep "#ddev-generated" web-build/Dockerfile.playwright 2>/dev/null; then rm web-build/Dockerfile.playwright; fi
+- |
+  GITIGNORE="${DDEV_APPROOT}/.ddev/web-build/.gitignore"
+  if [ -f "$GITIGNORE" ]; then
+    sed -i '/# This file is optionally copied to enable playwright from$/d; /# disabled\.Dockerfile\.playwright\.$/d; /^Dockerfile\.playwright$/d; /# This directory is always copied from/d; /^playwright$/d' "$GITIGNORE"
+  fi
