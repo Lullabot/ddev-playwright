@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.2](https://github.com/Lullabot/ddev-playwright/compare/v0.5.1...v0.5.2) (2026-03-23)
+
+
+### Bug Fixes
+
+* manage .gitignore via post_install_actions for addon coexistence ([92a6aa9](https://github.com/Lullabot/ddev-playwright/commit/92a6aa93de137437707966d7bbf9fcbea198e59c))
+* preserve both addons' browsers when co-installed with ddev-playwright-cli ([5cf40cd](https://github.com/Lullabot/ddev-playwright/commit/5cf40cd4645299f5f6ea257e76da6185fdd768c5))
+
 ## [0.5.1](https://github.com/Lullabot/ddev-playwright/compare/0.5.0...v0.5.1) (2026-03-13)
 
 
