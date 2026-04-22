@@ -89,8 +89,9 @@ this addon imports that root into the web user's NSS database
 already seeds, so it works too.
 
 Firefox keeps its trust store inside each Playwright-managed profile and
-does not read `~/.pki/nssdb`, so `ignoreHTTPSErrors: true` is still needed
-for Firefox-only projects. A follow-up to auto-trust certificates in the
+does not read `~/.pki/nssdb`. If any Playwright project in your config
+targets Firefox, set `ignoreHTTPSErrors: true` on that project (or
+globally under `use`). A follow-up to auto-trust certificates in the
 Firefox profile would close that gap.
 
 ## Contributing
