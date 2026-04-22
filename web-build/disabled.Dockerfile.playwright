@@ -61,10 +61,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   && sudo -u $username mkdir -p /home/$username/.cache \
   && sudo -u $username cp -a /ms-playwright-cache/* /home/$username/.cache/
 
-# Install a window manager.
+# Install a window manager, plus libnss3-tools so the web-entrypoint.d
+# mkcert-nssdb.sh script can populate the user's NSS database with DDEV's
+# mkcert root CA — required for Chromium-based browsers to trust
+# *.ddev.site HTTPS certificates without `ignoreHTTPSErrors`.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   sudo apt-get install -y icewm \
+    libnss3-tools \
     xauth
 
 # Install kasmvnc for remote access.

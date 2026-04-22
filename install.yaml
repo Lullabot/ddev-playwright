@@ -16,6 +16,7 @@ project_files:
   - web-build/xstartup
   - config.playwright.yml
   - docker-compose.sqlite.yaml
+  - web-entrypoint.d/mkcert-nssdb.sh
 
 # Manage .gitignore entries via post_install_actions so other addons (e.g.
 # ddev-playwright-cli) can append their own entries without being overwritten.

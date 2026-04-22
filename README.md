@@ -47,8 +47,6 @@ ddev exec -d /var/www/html/test/playwright npm init playwright@latest
 # Or yarn:
 # ddev exec -d /var/www/html/test/playwright yarn create playwright
 
-# Add ignoreHTTPSErrors: true in test/playwright/playwright.config.ts to support HTTPS in tests.
-
 # 3. Install Playwright browser dependencies and cache them.
 ddev install-playwright
 
@@ -80,6 +78,20 @@ package uses this path for per-test SQLite database copies, and keeping
 the I/O in memory significantly improves parallel test performance. Feel free to use it for your own database driven tests.
 
 Because tmpfs is volatile, `ddev restart` will clear the volume.
+
+## HTTPS certificates
+
+DDEV signs every `*.ddev.site` certificate with a per-host
+[mkcert](https://github.com/FiloSottile/mkcert) root CA. On container start
+this addon imports that root into the web user's NSS database
+(`~/.pki/nssdb`), so Chromium-based browsers trust the certificate without
+`ignoreHTTPSErrors: true`. WebKit consults the system CA bundle that DDEV
+already seeds, so it works too.
+
+Firefox keeps its trust store inside each Playwright-managed profile and
+does not read `~/.pki/nssdb`, so `ignoreHTTPSErrors: true` is still needed
+for Firefox-only projects. A follow-up to auto-trust certificates in the
+Firefox profile would close that gap.
 
 ## Contributing
 
