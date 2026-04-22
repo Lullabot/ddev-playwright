@@ -82,17 +82,19 @@ Because tmpfs is volatile, `ddev restart` will clear the volume.
 ## HTTPS certificates
 
 DDEV signs every `*.ddev.site` certificate with a per-host
-[mkcert](https://github.com/FiloSottile/mkcert) root CA. On container start
-this addon imports that root into the web user's NSS database
-(`~/.pki/nssdb`), so Chromium-based browsers trust the certificate without
-`ignoreHTTPSErrors: true`. WebKit consults the system CA bundle that DDEV
-already seeds, so it works too.
+[mkcert](https://github.com/FiloSottile/mkcert) root CA. On container
+start this addon makes Chromium, Firefox, and WebKit all trust that CA,
+so `*.ddev.site` loads cleanly without `ignoreHTTPSErrors: true` in any
+Playwright project. The setup lives in
+`.ddev/web-entrypoint.d/mkcert-nssdb.sh`:
 
-Firefox keeps its trust store inside each Playwright-managed profile and
-does not read `~/.pki/nssdb`. If any Playwright project in your config
-targets Firefox, set `ignoreHTTPSErrors: true` on that project (or
-globally under `use`). A follow-up to auto-trust certificates in the
-Firefox profile would close that gap.
+- **Chromium** reads `~/.pki/nssdb`; the script imports every mkcert
+  root via `certutil`.
+- **Firefox** (the Playwright build) reads an enterprise policy JSON
+  whose path is given by `PLAYWRIGHT_FIREFOX_POLICIES_JSON`. The script
+  writes that file; `config.playwright.yml` sets the env var.
+- **WebKit** reads the system CA bundle directly, which DDEV already
+  seeds, so it needs no extra handling.
 
 ## Contributing
 
