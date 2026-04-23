@@ -23,7 +23,9 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    ignoreHTTPSErrors: true,
+    // Proves the addon's mkcert trust setup works across all three browsers.
+    // If this regresses, the bats suite will fail loudly on page.goto().
+    ignoreHTTPSErrors: false,
     /* Base URL to use in actions like `await page.goto('/')`. */
     // baseURL: 'http://127.0.0.1:3000',
 

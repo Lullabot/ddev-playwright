@@ -18,6 +18,11 @@ hooks:
     - exec-host: rm -rf .ddev/web-build/playwright
 web_environment:
   - DISPLAY=:1
+  # Playwright's bundled Firefox reads enterprise policies from the file
+  # referenced by this env var (see web-entrypoint.d/mkcert-nssdb.sh for
+  # the writer). Keeps *.ddev.site trusted for Firefox without requiring
+  # `ignoreHTTPSErrors: true`.
+  - PLAYWRIGHT_FIREFOX_POLICIES_JSON=/tmp/playwright-firefox-policies.json
 # We add the sleep so this doesn't error out when not using playwright.
 web_extra_daemons:
   - name: "kasmvnc"
