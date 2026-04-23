@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/Lullabot/ddev-playwright/compare/v0.5.2...v0.5.3) (2026-04-23)
+
+
+### Features
+
+* trust DDEV's mkcert root CA in Playwright's Chromium, Firefox, and WebKit ([#78](https://github.com/Lullabot/ddev-playwright/issues/78)) ([3a74c69](https://github.com/Lullabot/ddev-playwright/commit/3a74c69d41a0bf5a711da7d9ff30f5f1ec8d62ba))
+
 ## [0.5.2](https://github.com/Lullabot/ddev-playwright/compare/v0.5.1...v0.5.2) (2026-03-23)
 
 
