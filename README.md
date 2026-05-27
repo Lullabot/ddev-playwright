@@ -57,9 +57,9 @@ ddev playwright test --headed
 # To generate playwright code by browsing.
 ddev playwright codegen
 # To view the HTML test report.
-# The --host flag is required so the report server binds to all interfaces,
-# not just localhost inside the container.
-ddev playwright show-report --host=0.0.0.0
+# Bind to the loopback interface inside the container, which is sufficient for
+# DDEV routing and keeps the report server more constrained.
+ddev playwright show-report --host=127.0.0.1
 # The report is then accessible at https://<PROJECT>.ddev.site:9324
 ```
 
