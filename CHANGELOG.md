@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/Lullabot/ddev-playwright/compare/v0.5.3...v0.5.4) (2026-06-07)
+
+
+### Bug Fixes
+
+* **deps:** require @playwright/test ^1.60.0 to fix Node.js 26 install hang ([#94](https://github.com/Lullabot/ddev-playwright/issues/94)) ([5dfe8cc](https://github.com/Lullabot/ddev-playwright/commit/5dfe8cc41d51c50cb4392199e6492b3a2a9a029f))
+
 ## [0.5.3](https://github.com/Lullabot/ddev-playwright/compare/v0.5.2...v0.5.3) (2026-04-23)
 
 
