@@ -35,6 +35,14 @@ The full setup workflow is:
 > version in `test/playwright/package.json` so the matching browser binaries are
 > installed.
 
+> **Tip:** Tests live in `test/playwright` by default. To use a different
+> path (e.g. `tests/playwright`), add it to `.ddev/.env`:
+> ```
+> PLAYWRIGHT_TEST_DIR=tests/playwright
+> ```
+> then `ddev restart` before initializing Playwright. Substitute your
+> chosen path for `test/playwright` in the commands below.
+
 ```console
 # 1. Install the addon.
 ddev add-on get Lullabot/ddev-playwright

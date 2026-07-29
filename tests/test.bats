@@ -57,18 +57,19 @@ get_addon() {
   assert [ -x .ddev/web-build/install-task.sh ]
   assert [ -f .ddev/web-build/kasmvnc.yaml ]
   assert [ -f .ddev/web-build/xstartup ]
-  mkdir test
+  mkdir "${1:-test}"
 }
 
 verify_run_playwright() {
+  local playwright_dir="${1:-test/playwright}"
   cp -av "$DIR"/tests/testdata/web/* web/
   assert [ -f web/index.php ]
   ddev install-playwright
 
   ddev exec -- which task
 
-  mkdir -p test/playwright/tests
-  cp "$DIR"/tests/testdata/phpinfo.spec.ts test/playwright/tests/phpinfo.spec.ts
+  mkdir -p "${playwright_dir}/tests"
+  cp "$DIR"/tests/testdata/phpinfo.spec.ts "${playwright_dir}/tests/phpinfo.spec.ts"
   health_checks
 
   # Verify kasmvnc is listening.
@@ -99,6 +100,14 @@ verify_run_playwright() {
   get_addon
   cp -av "$DIR"/tests/testdata/yarn-playwright test/playwright
   verify_run_playwright
+}
+
+@test "install from directory with npm and custom PLAYWRIGHT_TEST_DIR" {
+  get_addon tests
+  echo "PLAYWRIGHT_TEST_DIR=tests/playwright" > .ddev/.env
+  cp -av "$DIR"/tests/testdata/npm-playwright tests/playwright
+  ddev exec -d /var/www/html/tests/playwright npm ci
+  verify_run_playwright tests/playwright
 }
 
 @test "install requires a playwright installation" {
