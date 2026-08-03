@@ -102,7 +102,7 @@ verify_run_playwright() {
   verify_run_playwright
 }
 
-@test "install from directory with npm and custom PLAYWRIGHT_TEST_DIR" {
+@test "install from directory with npm and custom PLAYWRIGHT_TEST_DIR (tests/playwright)" {
   get_addon tests
   echo "PLAYWRIGHT_TEST_DIR=tests/playwright" > .ddev/.env
   cp -av "$DIR"/tests/testdata/npm-playwright tests/playwright
