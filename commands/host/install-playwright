@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 #ddev-generated
 
+# Host commands don't run with the project root as cwd — DDEV runs them from
+# wherever `ddev` was invoked, which is why it exposes $DDEV_APPROOT at all.
+# Every path below (.ddev/.env, $PLAYWRIGHT_TEST_DIR, .ddev/web-build/...) is
+# relative, so anchor to the project root first or a run from a subdirectory
+# fails with a confusing "no such file" instead of doing the right thing.
+cd "$DDEV_APPROOT"
+
 # Allow overriding the test directory location via .ddev/.env, e.g.:
 #   PLAYWRIGHT_TEST_DIR=tests/playwright
 set -a
