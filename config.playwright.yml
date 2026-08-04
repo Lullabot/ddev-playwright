@@ -1,16 +1,21 @@
 #ddev-generated
 hooks:
   pre-start:
-    # If Playwright is enabled, make sure we get any changes.
+    # If Playwright is enabled, make sure we get any changes, and bake in the
+    # configured PLAYWRIGHT_TEST_DIR value. A plain Dockerfile has no way to
+    # read a host env var at build time, so we substitute the real value into
+    # Dockerfile.playwright here, on the host, before the build ever sees it.
+    # That value has to land at the *exact* runtime path — see the
+    # __PLAYWRIGHT_TEST_DIR__ comment in disabled.Dockerfile.playwright for
+    # why a mismatch here silently defeats its browser-caching trick.
     - exec-host: |
-        ([[ -f .ddev/web-build/Dockerfile.playwright ]] && \
-          cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright) || true
-    - exec-host: |
-        if [[ -f .ddev/web-build/Dockerfile.playwright ]]
-        then
+        if [[ -f .ddev/web-build/Dockerfile.playwright ]]; then
           set -a
           [[ -f .ddev/.env ]] && source .ddev/.env
           set +a
+          cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright
+          sed -i.bak "s|__PLAYWRIGHT_TEST_DIR__|${PLAYWRIGHT_TEST_DIR:-test/playwright}|g" .ddev/web-build/Dockerfile.playwright
+          rm -f .ddev/web-build/Dockerfile.playwright.bak
           rm -rf .ddev/web-build/playwright
           cp -r "${PLAYWRIGHT_TEST_DIR:-test/playwright}" .ddev/web-build/playwright
         fi
