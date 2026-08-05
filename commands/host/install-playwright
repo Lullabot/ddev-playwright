@@ -6,7 +6,7 @@
 # Every path below (.ddev/.env, $PLAYWRIGHT_TEST_DIR, .ddev/web-build/...) is
 # relative, so anchor to the project root first or a run from a subdirectory
 # fails with a confusing "no such file" instead of doing the right thing.
-cd "$DDEV_APPROOT"
+cd "$DDEV_APPROOT" || exit 1
 
 # Allow overriding the test directory location via .ddev/.env, e.g.:
 #   PLAYWRIGHT_TEST_DIR=tests/playwright
@@ -51,5 +51,5 @@ fi
 # ddev errors out on subsequent builds if we symlink these files. Instead, we
 # copy them each time.
 echo "Rebuilding web service with playwright dependencies..."
-cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright
+cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright || exit 1
 ddev restart
