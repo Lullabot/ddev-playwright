@@ -10,14 +10,18 @@ hooks:
     # why a mismatch here silently defeats its browser-caching trick.
     - exec-host: |
         if [[ -f .ddev/web-build/Dockerfile.playwright ]]; then
-          set -a
-          [[ -f .ddev/.env ]] && source .ddev/.env
-          set +a
+          # Sourced in a subshell so only PLAYWRIGHT_TEST_DIR escapes here —
+          # anything else .ddev/.env sets (PATH, etc.) doesn't leak into the
+          # cp/sed/rm calls below.
+          if [[ -f .ddev/.env ]]; then
+            PLAYWRIGHT_TEST_DIR=$(set -a && . .ddev/.env && set +a && echo "$PLAYWRIGHT_TEST_DIR")
+          fi
+          PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
           cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright
-          sed -i.bak "s|__PLAYWRIGHT_TEST_DIR__|${PLAYWRIGHT_TEST_DIR:-test/playwright}|g" .ddev/web-build/Dockerfile.playwright
+          sed -i.bak "s|__PLAYWRIGHT_TEST_DIR__|${PLAYWRIGHT_TEST_DIR}|g" .ddev/web-build/Dockerfile.playwright
           rm -f .ddev/web-build/Dockerfile.playwright.bak
           rm -rf .ddev/web-build/playwright
-          cp -r "${PLAYWRIGHT_TEST_DIR:-test/playwright}" .ddev/web-build/playwright
+          cp -r "${PLAYWRIGHT_TEST_DIR}" .ddev/web-build/playwright
         fi
   post-start:
     # Clean up the playwright directory copied for builds.
