@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.5](https://github.com/Lullabot/ddev-playwright/compare/v0.5.4...v0.5.5) (2026-08-07)
+
+
+### Features
+
+* support configurable PLAYWRIGHT_TEST_DIR ([#123](https://github.com/Lullabot/ddev-playwright/issues/123)) ([3901574](https://github.com/Lullabot/ddev-playwright/commit/3901574624df3f47f953fd101eb32ec63bd71d65))
+
+
+### Bug Fixes
+
+* ddev restart failing on macOS with playwright via npm ([#127](https://github.com/Lullabot/ddev-playwright/issues/127)) ([8291562](https://github.com/Lullabot/ddev-playwright/commit/829156253e765213a34bc73d05df4e8c39e4a561))
+
 ## [0.5.4](https://github.com/Lullabot/ddev-playwright/compare/v0.5.3...v0.5.4) (2026-06-07)
 
 
