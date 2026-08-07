@@ -21,7 +21,7 @@ hooks:
           sed -i.bak "s|__PLAYWRIGHT_TEST_DIR__|${PLAYWRIGHT_TEST_DIR}|g" .ddev/web-build/Dockerfile.playwright
           rm -f .ddev/web-build/Dockerfile.playwright.bak
           rm -rf .ddev/web-build/playwright
-          cp -r "${PLAYWRIGHT_TEST_DIR}" .ddev/web-build/playwright
+          cp -a "${PLAYWRIGHT_TEST_DIR}" .ddev/web-build/playwright
         fi
   post-start:
     # Clean up the playwright directory copied for builds.

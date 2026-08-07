@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# A stand-in for macOS/BSD `cp`, meant to be put first on PATH by tests.
+#
+# It emulates exactly one difference from GNU coreutils, the one behind #118:
+# BSD `cp -r` dereferences symlinks it meets while recursing, replacing each
+# one with a copy of its target. BSD `-R`, `-a` and `-P` copy symlinks as
+# symlinks, and so does GNU `cp -r` -- which is why that bug never reproduced
+# on Linux CI.
+#
+# GNU cp reproduces the BSD `-r` behavior when handed `-L`, so that is all we
+# do here: decide whether this invocation is a BSD-dereferencing one, and if
+# so add `-L` before handing off to the real cp.
+set -euo pipefail
+
+real_cp=""
+for candidate in /bin/cp /usr/bin/cp; do
+  if [[ -x ${candidate} ]]; then
+    real_cp=${candidate}
+    break
+  fi
+done
+if [[ -z ${real_cp} ]]; then
+  echo "bsd-cp-shim: could not find the real cp" >&2
+  exit 127
+fi
+
+# Collect every short flag letter used, in any position. Operands may be
+# followed by more options, so keep scanning until an explicit `--`.
+short_flags=""
+saw_long_dereference=false
+saw_long_keep=false
+for arg in "$@"; do
+  case ${arg} in
+    --) break ;;
+    --dereference) saw_long_dereference=true ;;
+    --archive | --no-dereference) saw_long_keep=true ;;
+    --*) ;;
+    -?*) short_flags+="${arg#-}" ;;
+    *) ;;
+  esac
+done
+
+# -R, -a, -d and -P all keep symlinks as symlinks on BSD, and win over -r.
+keeps_symlinks=false
+if [[ ${short_flags} == *[RadP]* ]] || [[ ${saw_long_keep} == true ]]; then
+  keeps_symlinks=true
+fi
+
+dereferences=false
+if [[ ${saw_long_dereference} == true || ${short_flags} == *L* ]]; then
+  dereferences=true
+elif [[ ${short_flags} == *r* && ${keeps_symlinks} == false ]]; then
+  dereferences=true
+fi
+
+if [[ ${dereferences} == true ]]; then
+  exec "${real_cp}" -L "$@"
+fi
+
+exec "${real_cp}" "$@"
