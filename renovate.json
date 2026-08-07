@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests"
+    "helpers:pinGitHubActionDigestsToSemver"
   ],
   "customManagers": [
     {
@@ -19,7 +19,9 @@
   "minimumReleaseAge": "3 days",
   "packageRules": [
     {
-      "matchManagers": ["github-actions"],
+      "description": "Never automerge a digest-only update: that is an existing action tag being repointed at a new commit, which needs a human to look at it.",
+      "matchDepTypes": ["action"],
+      "matchUpdateTypes": ["digest"],
       "automerge": false
     }
   ]
