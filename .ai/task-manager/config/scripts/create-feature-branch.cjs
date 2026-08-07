@@ -10,7 +10,7 @@
  *   1 = Error (not git repo, uncommitted changes, plan not found)
  */
 
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const { resolvePlan } = require('./shared-utils.cjs');
@@ -34,12 +34,12 @@ const _printInfo = (message) => {
 
 /**
  * Execute a git command and return the output
- * @param {string} command - Git command to execute
+ * @param {string[]} args - Git arguments array
  * @returns {string|null} Command output or null on error
  */
-const _execGit = (command) => {
+const _execGit = (args) => {
   try {
-    return execSync(command, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
+    return execFileSync('git', args, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }).trim();
   } catch (_error) {
     return null;
   }
@@ -50,7 +50,7 @@ const _execGit = (command) => {
  * @returns {boolean}
  */
 const _isGitRepo = () => {
-  const result = _execGit('git rev-parse --is-inside-work-tree');
+  const result = _execGit(['rev-parse', '--is-inside-work-tree']);
   return result === 'true';
 };
 
@@ -59,7 +59,7 @@ const _isGitRepo = () => {
  * @returns {string|null}
  */
 const _getCurrentBranch = () => {
-  return _execGit('git rev-parse --abbrev-ref HEAD');
+  return _execGit(['rev-parse', '--abbrev-ref', 'HEAD']);
 };
 
 /**
@@ -67,7 +67,7 @@ const _getCurrentBranch = () => {
  * @returns {boolean}
  */
 const _hasUncommittedChanges = () => {
-  const status = _execGit('git status --porcelain');
+  const status = _execGit(['status', '--porcelain']);
   return status !== null && status.length > 0;
 };
 
@@ -78,13 +78,13 @@ const _hasUncommittedChanges = () => {
  */
 const _branchExists = (branchName) => {
   // Check local branches
-  const localBranches = _execGit('git branch --list');
+  const localBranches = _execGit(['branch', '--list']);
   if (localBranches && localBranches.split('\n').some(b => b.trim().replace('* ', '') === branchName)) {
     return true;
   }
 
   // Check remote branches
-  const remoteBranches = _execGit('git branch -r --list');
+  const remoteBranches = _execGit(['branch', '-r', '--list']);
   if (remoteBranches && remoteBranches.split('\n').some(b => b.trim().includes(branchName))) {
     return true;
   }
@@ -181,7 +181,7 @@ const _main = (startPath = process.cwd()) => {
   }
 
   // Step 7: Create and checkout the branch
-  const createResult = _execGit(`git checkout -b "${branchName}"`);
+  const createResult = _execGit(['checkout', '-b', branchName]);
 
   if (createResult === null) {
     _printError(`Failed to create branch "${branchName}"`);
