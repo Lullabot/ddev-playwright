@@ -1,17 +1,33 @@
 #!/usr/bin/env bash
 #ddev-generated
 
-mkdir -p test/playwright
-if [ ! -f test/playwright/package.json ]; then
-  echo "No playwright installation exists at test/playwright."
+# Host commands don't run with the project root as cwd — DDEV runs them from
+# wherever `ddev` was invoked, which is why it exposes $DDEV_APPROOT at all.
+# Every path below (.ddev/.env, $PLAYWRIGHT_TEST_DIR, .ddev/web-build/...) is
+# relative, so anchor to the project root first or a run from a subdirectory
+# fails with a confusing "no such file" instead of doing the right thing.
+cd "$DDEV_APPROOT" || exit 1
+
+# Allow overriding the test directory location via .ddev/.env, e.g.:
+#   PLAYWRIGHT_TEST_DIR=tests/playwright
+# Sourced in a subshell so only PLAYWRIGHT_TEST_DIR escapes into this script —
+# anything else .ddev/.env sets (PATH, etc.) doesn't leak into the commands below.
+if [ -f .ddev/.env ]; then
+  PLAYWRIGHT_TEST_DIR=$(set -a && . .ddev/.env && set +a && echo "$PLAYWRIGHT_TEST_DIR")
+fi
+PLAYWRIGHT_TEST_DIR="${PLAYWRIGHT_TEST_DIR:-test/playwright}"
+
+mkdir -p "$PLAYWRIGHT_TEST_DIR"
+if [ ! -f "$PLAYWRIGHT_TEST_DIR/package.json" ]; then
+  echo "No playwright installation exists at $PLAYWRIGHT_TEST_DIR."
   # https://github.com/microsoft/playwright/issues/11843
   echo "Playwright does not support a non-interactive setup and must be done manually."
   echo ""
   echo "Run the following to use npm:"
-  echo   ddev exec -d /var/www/html/test/playwright npm init playwright@latest
+  echo   ddev exec -d "/var/www/html/$PLAYWRIGHT_TEST_DIR" npm init playwright@latest
   echo ""
   echo "Run the following to use yarn instead:"
-  echo   ddev exec -d /var/www/html/test/playwright yarn create playwright
+  echo   ddev exec -d "/var/www/html/$PLAYWRIGHT_TEST_DIR" yarn create playwright
   echo ""
   echo "Answer "no" when it asks to install browsers and operating system dependencies,"
   echo "as those will be erased when ddev restarts."
@@ -23,12 +39,12 @@ if [ ! -f test/playwright/package.json ]; then
 fi
 
 # Validate that the package.json actually contains a Playwright dependency.
-if ! grep -qE '"@playwright/test"|"playwright"' test/playwright/package.json; then
-  echo "Error: test/playwright/package.json does not contain @playwright/test or playwright as a dependency."
+if ! grep -qE '"@playwright/test"|"playwright"' "$PLAYWRIGHT_TEST_DIR/package.json"; then
+  echo "Error: $PLAYWRIGHT_TEST_DIR/package.json does not contain @playwright/test or playwright as a dependency."
   echo ""
   echo "Please initialize Playwright first by running one of:"
-  echo "  ddev exec -d /var/www/html/test/playwright npm init playwright@latest"
-  echo "  ddev exec -d /var/www/html/test/playwright yarn create playwright"
+  echo "  ddev exec -d /var/www/html/$PLAYWRIGHT_TEST_DIR npm init playwright@latest"
+  echo "  ddev exec -d /var/www/html/$PLAYWRIGHT_TEST_DIR yarn create playwright"
   echo ""
   echo "When done, run: ddev install-playwright"
   exit 1
@@ -37,5 +53,5 @@ fi
 # ddev errors out on subsequent builds if we symlink these files. Instead, we
 # copy them each time.
 echo "Rebuilding web service with playwright dependencies..."
-cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright
+cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright || exit 1
 ddev restart

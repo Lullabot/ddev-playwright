@@ -11,14 +11,21 @@ RUN apt-get update
 # start is run. In general, edit this file instead.
 #
 # We want to install whatever browsers are used by the currently locked version
-# of playwright in test/playwright. What this does is:
+# of playwright in PLAYWRIGHT_TEST_DIR. What this does is:
 #
-# 1. Creates a copy of the playwright directory in the image. We need this
-#    because Playwright keeps a hidden .links/<hash> file with the path of
-#    what browsers are installed by what apps. Without it, Playwright will re-
-#    download browsers even though they are in the directory. As the Docker
-#    context is the web-build directory, we have a pre-start hook in
-#    config.yaml that copies in the current test files.
+# 1. Creates a copy of the playwright directory in the image, at the *same*
+#    path PLAYWRIGHT_TEST_DIR resolves to at runtime (/var/www/html/__PLAYWRIGHT_TEST_DIR__
+#    below — substituted with the real value on the host before the build
+#    ever sees this file, since a plain Dockerfile has no way to read a host
+#    env var; see the pre-start hook in config.playwright.yml that does the
+#    substitution). The path has to match exactly, because Playwright keeps a
+#    hidden .links/<hash> file keyed on the install path to know what browsers
+#    are installed by what apps — install at the wrong path here and
+#    Playwright won't recognize the real runtime path as already having
+#    browsers, and will re-download them there even though they're already in
+#    the image. As the Docker context is the web-build directory, we have a
+#    pre-start hook in config.playwright.yml that copies in the current test
+#    files.
 # 2. $username doesn't work in --mount... lines as it's a shell variable set by
 #    ddev. Instead, we mount the .cache cache into /ms-playwright-cache, and
 #    symlink it in. We merge any existing ~/.cache content into the mount first
@@ -38,14 +45,14 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
   --mount=type=cache,target=/ms-playwright-cache,sharing=locked \
   --mount=type=bind,source=./playwright,target=/playwright \
-  sudo -u $username mkdir -p /var/www/html/test \
-  && cp -a /playwright /var/www/html/test \
-  && chown -R $username:$username /var/www/html/test/playwright \
+  sudo -u $username mkdir -p /var/www/html/__PLAYWRIGHT_TEST_DIR__ \
+  && cp -a /playwright/. /var/www/html/__PLAYWRIGHT_TEST_DIR__ \
+  && chown -R $username:$username /var/www/html/__PLAYWRIGHT_TEST_DIR__ \
   && chown -R $username:$username /ms-playwright-cache \
   && cp -an /home/$username/.cache/* /ms-playwright-cache/ 2>/dev/null; \
   rm -rf /home/$username/.cache \
   && sudo -u $username ln -s /ms-playwright-cache /home/$username/.cache \
-  && cd /var/www/html/test/playwright \
+  && cd /var/www/html/__PLAYWRIGHT_TEST_DIR__ \
   && if [ -f yarn.lock ]; then \
        export JS_PKG_MANAGER=yarn; \
        corepack enable; \
@@ -56,7 +63,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
      fi \
   && sudo -u $username $JS_PKG_MANAGER playwright install-deps \
   && sudo -u $username PLAYWRIGHT_SKIP_BROWSER_GC=1 $JS_PKG_MANAGER playwright install \
-  && rm -rf /var/www/html/test/playwright \
+  && rm -rf /var/www/html/__PLAYWRIGHT_TEST_DIR__ \
   && rm /home/$username/.cache \
   && sudo -u $username mkdir -p /home/$username/.cache \
   && sudo -u $username cp -a /ms-playwright-cache/* /home/$username/.cache/

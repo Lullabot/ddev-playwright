@@ -29,7 +29,7 @@ post_install_actions:
       printf '\n# This file is optionally copied to enable playwright from\n# disabled.Dockerfile.playwright.\nDockerfile.playwright\n' >> "$GITIGNORE"
     fi
     if ! grep -qx "playwright" "$GITIGNORE"; then
-      printf '\n# This directory is always copied from /test/playwright.\nplaywright\n' >> "$GITIGNORE"
+      printf '\n# This directory is always copied from PLAYWRIGHT_TEST_DIR (default test/playwright).\nplaywright\n' >> "$GITIGNORE"
     fi
 
 removal_actions:
