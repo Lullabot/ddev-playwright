@@ -26,6 +26,7 @@ jobs:
             docs
             feat
             fix
+            perf
             refactor
             revert
             test
@@ -39,4 +40,4 @@ jobs:
           fetch-depth: 0
       - uses: webiny/action-conventional-commits@7f91b1595ca1951cdb671ddc9f07a49081ec5b69 # v1.4.2
         with:
-          allowed-commit-types: chore,ci,docs,feat,fix,refactor,revert,test
+          allowed-commit-types: chore,ci,docs,feat,fix,perf,refactor,revert,test
