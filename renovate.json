@@ -8,7 +8,7 @@
     {
       "customType": "regex",
       "managerFilePatterns": [
-        "/web-build/Dockerfile\\.uv$/"
+        "/web-build/Dockerfile\\.20-astral-uv$/"
       ],
       "matchStrings": ["https://astral\\.sh/uv/(?<currentValue>[^/]+)/install\\.sh"],
       "datasourceTemplate": "github-releases",

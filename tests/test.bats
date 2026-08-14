@@ -72,7 +72,8 @@ get_addon() {
   assert [ -f .ddev/web-build/.gitignore ]
   assert [ -f .ddev/web-build/disabled.Dockerfile.playwright ]
   assert [ -x .ddev/web-build/install-kasmvnc.sh ]
-  assert [ -f .ddev/web-build/Dockerfile.task ]
+  assert [ -f .ddev/web-build/Dockerfile.10-go-task ]
+  assert [ -f .ddev/web-build/Dockerfile.20-astral-uv ]
   assert [ -x .ddev/web-build/install-task.sh ]
   assert [ -f .ddev/web-build/kasmvnc.yaml ]
   assert [ -f .ddev/web-build/xstartup ]
@@ -134,8 +135,44 @@ verify_run_playwright() {
   assert_line --regexp '^webkit-[0-9]+$'
   assert_line --regexp '^ffmpeg-[0-9]+$'
 
+  assert_invariant_layers_precede_browser_install
+
   # Verify we can run an example test.
   ddev playwright test --reporter=line
+}
+
+# Guard the Dockerfile layer ordering.
+#
+# The browser install bind-mounts the staged Playwright directory, and BuildKit
+# folds a bind mount's contents into that layer's cache key -- so every
+# instruction after it is invalidated whenever that directory changes. Anything
+# not derived from the user's Playwright directory therefore has to come first,
+# or it gets rebuilt for no reason. See the note at the top of
+# disabled.Dockerfile.playwright.
+#
+# This reads the Dockerfile DDEV generates rather than timing a build, so it is
+# deterministic and costs milliseconds. It would not survive someone
+# "tidying" the Dockerfile back into a more natural-looking order, which is
+# exactly the regression it exists to catch.
+assert_invariant_layers_precede_browser_install() {
+  local dockerfile=".ddev/.webimageBuild/Dockerfile"
+  assert [ -f "$dockerfile" ]
+
+  local bind_line
+  bind_line=$(grep -n 'source=./playwright' "$dockerfile" | head -1 | cut -d: -f1)
+  assert [ -n "$bind_line" ]
+
+  local marker line
+  for marker in 'libnss3-tools' 'install-kasmvnc.sh' 'install-task.sh' 'astral.sh/uv'; do
+    line=$(grep -n "$marker" "$dockerfile" | tail -1 | cut -d: -f1)
+    if [ -z "$line" ]; then
+      batslib_print_kv_single 8 'missing marker' "$marker" | batslib_decorate 'marker not found in generated Dockerfile' | fail
+    fi
+    if [ "$line" -ge "$bind_line" ]; then
+      { batslib_print_kv_single 12 'marker' "$marker" 'marker line' "$line" 'bind mount line' "$bind_line"
+      } | batslib_decorate 'invariant layer must precede the bind-mounted browser install' | fail
+    fi
+  done
 }
 
 @test "install from directory with npm" {

@@ -7,9 +7,13 @@ name: ddev-playwright
 project_files:
   - commands/host/install-playwright
   - commands/web/playwright
+  # The numeric prefixes are load-bearing. DDEV concatenates
+  # web-build/Dockerfile.* in alphabetical order, and digits sort ahead of
+  # letters, so these land before Dockerfile.playwright -- see the layer
+  # ordering note in disabled.Dockerfile.playwright.
   - web-build/disabled.Dockerfile.playwright
-  - web-build/Dockerfile.task
-  - web-build/Dockerfile.uv
+  - web-build/Dockerfile.10-go-task
+  - web-build/Dockerfile.20-astral-uv
   - web-build/install-task.sh
   - web-build/install-kasmvnc.sh
   - web-build/kasmvnc.yaml
@@ -31,6 +35,20 @@ post_install_actions:
     if ! grep -qx "playwright" "$GITIGNORE"; then
       printf '\n# This directory is always copied from PLAYWRIGHT_TEST_DIR (default test/playwright).\nplaywright\n' >> "$GITIGNORE"
     fi
+  - |
+    #ddev-description:Remove superseded ddev-playwright Dockerfiles
+    # Dockerfile.task and Dockerfile.uv gained numeric prefixes so they sort
+    # before Dockerfile.playwright. Upgrading leaves the old names behind, and
+    # DDEV would build both copies -- installing go-task and uv twice per
+    # build, the second time in exactly the slow position the rename exists to
+    # avoid. Only remove files still carrying #ddev-generated, so a user who
+    # has taken one over keeps it.
+    for stale in Dockerfile.task Dockerfile.uv; do
+      f="${DDEV_APPROOT}/.ddev/web-build/${stale}"
+      if [ -f "$f" ] && grep -q "#ddev-generated" "$f"; then
+        rm -f "$f"
+      fi
+    done
 
 removal_actions:
 - if grep "#ddev-generated" web-build/Dockerfile.playwright 2>/dev/null; then rm web-build/Dockerfile.playwright; fi
