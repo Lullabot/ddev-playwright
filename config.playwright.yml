@@ -46,13 +46,26 @@ hooks:
             "${PLAYWRIGHT_TEST_DIR}"/npm-shrinkwrap.json \
             "${PLAYWRIGHT_TEST_DIR}"/yarn.lock \
             "${PLAYWRIGHT_TEST_DIR}"/.yarnrc.yml \
-            "${PLAYWRIGHT_TEST_DIR}"/.yarn \
             "${PLAYWRIGHT_TEST_DIR}"/.npmrc \
             "${PLAYWRIGHT_TEST_DIR}"/*.tgz; do
             if [[ -e "$src" ]]; then
               cp -R "$src" .ddev/web-build/playwright/
             fi
           done
+          # Yarn Berry keeps both inputs and generated state in .yarn/, so it
+          # gets the same treatment one level down. releases/, patches/ and
+          # plugins/ are read during install; cache/ is the packages
+          # themselves, and a zero-install project needs it. install-state.gz,
+          # unplugged/ and build-state.yml are outputs that yarn regenerates,
+          # so staging them would put build products in the cache key.
+          if [[ -d "${PLAYWRIGHT_TEST_DIR}/.yarn" ]]; then
+            mkdir -p .ddev/web-build/playwright/.yarn
+            for sub in releases patches plugins cache; do
+              if [[ -e "${PLAYWRIGHT_TEST_DIR}/.yarn/${sub}" ]]; then
+                cp -R "${PLAYWRIGHT_TEST_DIR}/.yarn/${sub}" .ddev/web-build/playwright/.yarn/
+              fi
+            done
+          fi
         fi
   post-start:
     # Clean up the playwright directory copied for builds.
