@@ -11,13 +11,25 @@ setup() {
 
   echo "# user is ${USER}" >&3
 
+  # Every run gets its own directory and its own project names. With a fixed
+  # TESTDIR and PROJNAME, two concurrent runs of this suite -- two developers
+  # or agents on one workstation, or two jobs on one self-hosted runner --
+  # share both. One run's teardown then rm -rf's the directory the other is
+  # working in, and the damage surfaces somewhere unrelated, as a
+  # "getwd: no such file or directory" out of whichever ddev command runs next.
+  #
+  # This isolates the filesystem and project namespace only. Concurrent runs
+  # still share one Docker daemon and one ddev router, so they can still
+  # contend; this makes them non-destructive, not free.
+  mkdir -p "${HOME}/tmp"
   export TESTDIR
-  #TESTDIR=$(mktemp -d "${HOME}/tmp/test-addon-ddev-playwright.XXXXXXXXX")
-  export TESTDIR=~/tmp/test-addon-template
-  mkdir -p ${TESTDIR}
+  TESTDIR=$(mktemp -d "${HOME}/tmp/test-addon-ddev-playwright.XXXXXXXXX")
   echo "# testdir is ${TESTDIR}" >&3
 
-  export PROJNAME=test-addon-ddev-playwright-${BATS_SUITE_TEST_NUMBER}
+  # mktemp's suffix is mixed case; ddev project names are [a-z0-9-], so fold it
+  # down rather than handing ddev a name it rejects.
+  RUN_ID=$(printf '%s' "${TESTDIR##*.}" | tr '[:upper:]' '[:lower:]')
+  export PROJNAME="test-addon-ddev-playwright-${BATS_SUITE_TEST_NUMBER}-${RUN_ID}"
   export DDEV_NON_INTERACTIVE=true
 
   ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
@@ -38,8 +50,15 @@ health_checks() {
 teardown() {
   set -eu -o pipefail
   cd "${TESTDIR}" || ( printf "unable to cd to %s\n" "${TESTDIR}" && exit 1 )
-  ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1
-  [ "${TESTDIR}" != "" ] && rm -rf "${TESTDIR}"
+  ddev delete -Oy "${PROJNAME}" >/dev/null 2>&1 || true
+  # Leave TESTDIR before removing it. Deleting the current working directory
+  # leaves this shell with a cwd that no longer resolves, and the next command
+  # to call getcwd() -- often something several steps later, in ddev -- dies
+  # with "no such file or directory".
+  cd "${HOME}"
+  if [ -n "${TESTDIR:-}" ] && [ -d "${TESTDIR}" ]; then
+    rm -rf "${TESTDIR}"
+  fi
 }
 
 get_addon() {
