@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.5.6](https://github.com/Lullabot/ddev-playwright/compare/v0.5.5...v0.5.6) (2026-08-14)
+
+
+### Bug Fixes
+
+* stage only dependency manifests into the browser build context ([#137](https://github.com/Lullabot/ddev-playwright/issues/137)) ([5f81503](https://github.com/Lullabot/ddev-playwright/commit/5f815033f896ee887f711ba67ff681c5516ecc3f))
+
+
+### Performance Improvements
+
+* order web image layers so test edits stop rebuilding the world ([#136](https://github.com/Lullabot/ddev-playwright/issues/136)) ([6baf3a5](https://github.com/Lullabot/ddev-playwright/commit/6baf3a5da15acee015d28c77b6c857dbac039a47))
+
 ## [0.5.5](https://github.com/Lullabot/ddev-playwright/compare/v0.5.4...v0.5.5) (2026-08-07)
 
 
