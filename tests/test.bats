@@ -99,10 +99,26 @@ verify_run_playwright() {
   curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
 
   # Verify that browsers have been downloaded.
-  ddev exec -- ls \~/.cache/ms-playwright
-  run ddev exec -- ls \~/.cache/ms-playwright \| wc -l \| sed \'s/ *//\'
-  # Playwright currently supports 5 browsers.
-  assert_output 5
+  #
+  # Assert the expected browsers are present rather than counting directories.
+  # The browser cache is deliberately allowed to hold more than one Playwright
+  # version's browsers: disabled.Dockerfile.playwright sets
+  # PLAYWRIGHT_SKIP_BROWSER_GC=1 so that browsers installed by a different
+  # playwright-core version -- @playwright/cli from ddev-playwright-cli, say --
+  # survive this install. Any fixed count therefore encodes an assumption the
+  # add-on goes out of its way to break, and fails as soon as a second version
+  # is present (locally, via the shared /ms-playwright-cache BuildKit mount;
+  # in CI, for anyone co-installing ddev-playwright-cli).
+  #
+  # A count is also weaker than it looks: five directories still passes if they
+  # are the wrong five. These patterns check what the test actually means.
+  run ddev exec -- ls \~/.cache/ms-playwright
+  assert_success
+  assert_line --regexp '^chromium-[0-9]+$'
+  assert_line --regexp '^chromium_headless_shell-[0-9]+$'
+  assert_line --regexp '^firefox-[0-9]+$'
+  assert_line --regexp '^webkit-[0-9]+$'
+  assert_line --regexp '^ffmpeg-[0-9]+$'
 
   # Verify we can run an example test.
   ddev playwright test --reporter=line
