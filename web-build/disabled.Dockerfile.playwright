@@ -24,8 +24,11 @@ RUN apt-get update
 #    Playwright won't recognize the real runtime path as already having
 #    browsers, and will re-download them there even though they're already in
 #    the image. As the Docker context is the web-build directory, we have a
-#    pre-start hook in config.playwright.yml that copies in the current test
-#    files.
+#    pre-start hook in config.playwright.yml that stages the current
+#    dependency manifests there. It stages only the manifests -- specs,
+#    fixtures, and snapshots are not needed to install browsers, and this tree
+#    is bind-mounted, so anything staged here lands in the cache key for this
+#    layer and every layer after it.
 # 2. $username doesn't work in --mount... lines as it's a shell variable set by
 #    ddev. Instead, we mount the .cache cache into /ms-playwright-cache, and
 #    symlink it in. We merge any existing ~/.cache content into the mount first

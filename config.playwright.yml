@@ -21,7 +21,51 @@ hooks:
           sed -i.bak "s|__PLAYWRIGHT_TEST_DIR__|${PLAYWRIGHT_TEST_DIR}|g" .ddev/web-build/Dockerfile.playwright
           rm -f .ddev/web-build/Dockerfile.playwright.bak
           rm -rf .ddev/web-build/playwright
-          cp -a "${PLAYWRIGHT_TEST_DIR}" .ddev/web-build/playwright
+          # Stage only the files a package manager reads to resolve and
+          # install dependencies. Dockerfile.playwright bind-mounts this
+          # directory into the build, so BuildKit hashes everything in it into
+          # that layer's cache key -- and the layer deletes its copy of the
+          # tree once the browsers are cached. Staging specs, fixtures, or
+          # snapshots would therefore rebuild the web image, and every layer
+          # after it, each time a test or a baseline screenshot changed,
+          # without a single one of those bytes reaching the final image.
+          #
+          # The *.tgz entry covers local tarball dependencies. Since only this
+          # directory is staged, a file: dependency has to resolve from within
+          # PLAYWRIGHT_TEST_DIR -- one pointing outside it will not be there
+          # to install.
+          if [[ ! -f "${PLAYWRIGHT_TEST_DIR}/package.json" ]]; then
+            echo "ddev-playwright: ${PLAYWRIGHT_TEST_DIR}/package.json is missing." >&2
+            echo "Run 'ddev install-playwright' for setup instructions, or delete" >&2
+            echo ".ddev/web-build/Dockerfile.playwright to start without Playwright." >&2
+            exit 1
+          fi
+          mkdir -p .ddev/web-build/playwright
+          for src in "${PLAYWRIGHT_TEST_DIR}"/package.json \
+            "${PLAYWRIGHT_TEST_DIR}"/package-lock.json \
+            "${PLAYWRIGHT_TEST_DIR}"/npm-shrinkwrap.json \
+            "${PLAYWRIGHT_TEST_DIR}"/yarn.lock \
+            "${PLAYWRIGHT_TEST_DIR}"/.yarnrc.yml \
+            "${PLAYWRIGHT_TEST_DIR}"/.npmrc \
+            "${PLAYWRIGHT_TEST_DIR}"/*.tgz; do
+            if [[ -e "$src" ]]; then
+              cp -R "$src" .ddev/web-build/playwright/
+            fi
+          done
+          # Yarn Berry keeps both inputs and generated state in .yarn/, so it
+          # gets the same treatment one level down. releases/, patches/ and
+          # plugins/ are read during install; cache/ is the packages
+          # themselves, and a zero-install project needs it. install-state.gz,
+          # unplugged/ and build-state.yml are outputs that yarn regenerates,
+          # so staging them would put build products in the cache key.
+          if [[ -d "${PLAYWRIGHT_TEST_DIR}/.yarn" ]]; then
+            mkdir -p .ddev/web-build/playwright/.yarn
+            for sub in releases patches plugins cache; do
+              if [[ -e "${PLAYWRIGHT_TEST_DIR}/.yarn/${sub}" ]]; then
+                cp -R "${PLAYWRIGHT_TEST_DIR}/.yarn/${sub}" .ddev/web-build/playwright/.yarn/
+              fi
+            done
+          fi
         fi
   post-start:
     # Clean up the playwright directory copied for builds.

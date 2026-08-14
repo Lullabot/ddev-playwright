@@ -79,10 +79,24 @@ get_addon() {
   mkdir "${1:-test}"
 }
 
+# Fill the Playwright directory with the bulky, frequently-changing files a
+# real project accumulates: fixtures and snapshot baselines. None of them are
+# needed to install browsers, so the pre-start hook must leave them out of the
+# build context. Seeding them here proves the build still works when the only
+# thing staged is the dependency manifests.
+seed_test_artifacts() {
+  local playwright_dir="${1:-test/playwright}"
+  mkdir -p "${playwright_dir}/fixtures"
+  mkdir -p "${playwright_dir}/tests/phpinfo.spec.ts-snapshots"
+  head -c 1048576 /dev/urandom > "${playwright_dir}/fixtures/database.sql"
+  head -c 1048576 /dev/urandom > "${playwright_dir}/tests/phpinfo.spec.ts-snapshots/phpinfo-chromium-linux.png"
+}
+
 verify_run_playwright() {
   local playwright_dir="${1:-test/playwright}"
   cp -av "$DIR"/tests/testdata/web/* web/
   assert [ -f web/index.php ]
+  seed_test_artifacts "${playwright_dir}"
   ddev install-playwright
 
   ddev exec -- which task
