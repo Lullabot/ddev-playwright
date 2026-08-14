@@ -8,6 +8,7 @@ _Example test validating phpinfo(), slowed down for the demo._
 * [What is ddev-playwright?](#what-is-ddev-playwright)
 * [Getting started](#getting-started)
 * [SQLite tmpfs mount](#sqlite-tmpfs-mount)
+* [What the browser install sees](#what-the-browser-install-sees)
 * [Contributing](#contributing)
 
 ## What is ddev-playwright?
@@ -103,6 +104,30 @@ Playwright project. The setup lives in
   writes that file; `config.playwright.yml` sets the env var.
 - **WebKit** reads the system CA bundle directly, which DDEV already
   seeds, so it needs no extra handling.
+
+## What the browser install sees
+
+Browsers are installed in a Docker layer, and that layer needs to know which
+version of Playwright your project has locked. A pre-start hook stages the
+files a package manager reads to answer that question into
+`.ddev/web-build/playwright`:
+
+`package.json`, `package-lock.json`, `npm-shrinkwrap.json`, `yarn.lock`,
+`.yarnrc.yml`, `.yarn/`, `.npmrc`, and any `*.tgz` in your Playwright
+directory (for local tarball dependencies).
+
+Your specs, fixtures, and snapshot baselines are deliberately left out. The
+staged directory is bind-mounted into the build, so everything in it becomes
+part of that layer's cache key — staging a snapshot baseline would rebuild the
+web image, and every layer after it, each time you updated a screenshot. None
+of those files survive into the image anyway; the layer deletes its copy once
+the browsers are cached.
+
+The practical consequence: a dependency in your `package.json` must be
+resolvable from the Playwright directory alone. A `file:` dependency pointing
+outside it (`file:../../some-package.tgz`) will fail to install during the
+build. Move the target inside the Playwright directory and reference it
+relatively.
 
 ## Contributing
 
