@@ -7,6 +7,7 @@ _Example test validating phpinfo(), slowed down for the demo._
 
 * [What is ddev-playwright?](#what-is-ddev-playwright)
 * [Getting started](#getting-started)
+* [Viewing test reports](#viewing-test-reports)
 * [SQLite tmpfs mount](#sqlite-tmpfs-mount)
 * [What the browser install sees](#what-the-browser-install-sees)
 * [Contributing](#contributing)
@@ -65,11 +66,10 @@ ddev playwright test
 ddev playwright test --headed
 # To generate playwright code by browsing.
 ddev playwright codegen
-# To view the HTML test report.
-# Bind to the loopback interface inside the container, which is sufficient for
-# DDEV routing and keeps the report server more constrained.
-ddev playwright show-report --host=127.0.0.1
-# The report is then accessible at https://<PROJECT>.ddev.site:9324
+# To view the HTML test report. The command prints the URL to open; no --host
+# flag is needed.
+ddev playwright show-report
+# The report is accessible at https://<PROJECT>.ddev.site:9324
 ```
 
 The following services are exposed with this addon:
@@ -78,6 +78,44 @@ The following services are exposed with this addon:
 |-------------------------|-----------------------------------|--------------------------------------------------------------------------------------------|
 | KasmVNC                 | https://\<PROJECT>.ddev.site:8444 | Username is your local username. Password is `secret`.                                     |
 | Playwright Test Reports | https://\<PROJECT>.ddev.site:9324 | This port is changed from the default to not conflict with running Playwright on the host. |
+
+## Viewing test reports
+
+`ddev playwright show-report` needs no flags. It serves the report from the
+web container and prints the URL to open:
+
+```
+ddev-playwright: view the report at https://<PROJECT>.ddev.site:9324
+ddev-playwright: the address Playwright prints below is the in-container one.
+
+  Serving HTML report at http://0.0.0.0:9323. Press Ctrl+C to quit.
+```
+
+Playwright's own line is accurate, but describes the address *inside* the
+container. The router publishes it on the host at the port in the table above.
+
+### Accessing other Playwright HTTP services beyond show-report
+
+When running commands like `show-trace`, always:
+
+1. **Bind `0.0.0.0`, never `localhost`.** The router connects over the Docker
+   network, so a server on the container's loopback interface is invisible to
+   it and the routed URL answers `502 Bad Gateway`. Binding `0.0.0.0` does not
+   expose anything to your network — the container port is not published, so
+   the router is still the only way in.
+2. **Use a port in `web_extra_exposed_ports`.** Anything else is not routed at
+   all, whatever it is bound to.
+
+`ddev playwright show-report` already satisfies both, which is why it needs no
+flags. Playwright's other servers default to `localhost` and need saying
+explicitly — both of these come out at `https://<PROJECT>.ddev.site:9324`:
+
+```bash
+ddev playwright test --ui --ui-host=0.0.0.0 --ui-port=9323
+ddev playwright show-trace --host=0.0.0.0 --port=9323
+```
+
+Run only one at a time; they share the single routed port.
 
 ## SQLite tmpfs mount
 

@@ -20,7 +20,10 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  /* The line reporter keeps the bats output readable; the html reporter gives
+   * `ddev playwright show-report` something to serve. open: 'never' stops a
+   * failing run from starting a report server the suite would then wait on. */
+  reporter: [['line'], ['html', { open: 'never' }]],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     // Proves the addon's mkcert trust setup works across all three browsers.
