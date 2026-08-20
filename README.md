@@ -92,17 +92,31 @@ ddev-playwright: the address Playwright prints below is the in-container one.
 ```
 
 Playwright's own line is accurate, but describes the address *inside* the
-container. DDEV's router publishes that as port 9324 on your host — 9323 is
-left alone so it does not conflict with a Playwright report served directly on
-the host.
+container. The router publishes it on the host at the port in the table above.
 
-If the report URL returns `502 Bad Gateway`, the report server is bound to an
-address the router cannot reach. The router connects to the web container over
-the Docker network, so `--host=127.0.0.1` (or `localhost`) binds to the
-container's own loopback interface and shuts the router out. Drop the flag.
-Binding `0.0.0.0`, which this command does for you, does not expose the report
-to your network: container port 9323 is not published, so the router is still
-the only way in.
+### Reaching any server you start in the container
+
+Two rules govern every server started inside the web container, not just the
+report:
+
+1. **Bind `0.0.0.0`, never `localhost`.** The router connects over the Docker
+   network, so a server on the container's loopback interface is invisible to
+   it and the routed URL answers `502 Bad Gateway`. Binding `0.0.0.0` does not
+   expose anything to your network — the container port is not published, so
+   the router is still the only way in.
+2. **Use a port in `web_extra_exposed_ports`.** Anything else is not routed at
+   all, whatever it is bound to.
+
+`ddev playwright show-report` already satisfies both, which is why it needs no
+flags. Playwright's other servers default to `localhost` and need saying
+explicitly — both of these come out at `https://<PROJECT>.ddev.site:9324`:
+
+```bash
+ddev playwright test --ui --ui-host=0.0.0.0 --ui-port=9323
+ddev playwright show-trace --host=0.0.0.0 --port=9323
+```
+
+Run only one at a time; they share the single routed port.
 
 ## SQLite tmpfs mount
 

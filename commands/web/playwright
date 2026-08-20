@@ -3,96 +3,103 @@
 
 cd "${PLAYWRIGHT_TEST_DIR:-test/playwright}" || exit 1
 
-# The container port config.playwright.yml maps for the HTML report, and the
-# host-side ports the router publishes for it. Keep all three in sync with
+# The container port config.playwright.yml routes the HTML report through, and
+# the host-side ports the router publishes for it. Keep all three in sync with
 # web_extra_exposed_ports there.
 REPORT_CONTAINER_PORT=9323
 REPORT_HTTPS_PORT=9324
 REPORT_HTTP_PORT=8323
 
-# The URL a browser on the host uses to reach the report server. DDEV_HOSTNAME
-# is a comma-separated list when a project has additional hostnames, so take
-# the first. Deriving the scheme from DDEV_PRIMARY_URL keeps this correct for
-# projects configured http-only, where the router publishes only the http port.
+# The URL a browser on the host uses to reach the report server.
+# DDEV_PRIMARY_URL_WITHOUT_PORT is the project's primary hostname with the
+# scheme attached and any router port already stripped, which is exactly the
+# base needed here -- deriving it from DDEV_HOSTNAME instead would mean owning
+# DDEV's rules for hostname ordering. Older DDEV releases set only
+# DDEV_PRIMARY_URL, so strip the port here for those.
 report_url() {
-  case "${DDEV_PRIMARY_URL:-https://}" in
-    http://*) printf 'http://%s:%s' "${DDEV_HOSTNAME%%,*}" "$REPORT_HTTP_PORT" ;;
-    *) printf 'https://%s:%s' "${DDEV_HOSTNAME%%,*}" "$REPORT_HTTPS_PORT" ;;
+  base="${DDEV_PRIMARY_URL_WITHOUT_PORT:-${DDEV_PRIMARY_URL%:[0-9]*}}"
+  case "$base" in
+    http://*) printf '%s:%s' "$base" "$REPORT_HTTP_PORT" ;;
+    *) printf '%s:%s' "$base" "$REPORT_HTTPS_PORT" ;;
   esac
 }
 
 # `show-report` starts a web server inside the web container, and DDEV's router
 # reaches that server over the Docker network -- never over the container's own
-# loopback interface. A report server bound to 127.0.0.1 is therefore invisible
-# to the router, which answers the routed URL with a 502 Bad Gateway. Binding
-# 0.0.0.0 does not expose the report to the host network either: the container
-# port is not published, so the router remains the only way in.
+# loopback interface. A report server bound to Playwright's default of
+# localhost is therefore invisible to the router, which answers the routed URL
+# with a 502 Bad Gateway. Binding 0.0.0.0 does not expose the report to the
+# host network either: the container port is not published, so the router
+# remains the only way in.
 #
-# Playwright then prints "Serving HTML report at http://0.0.0.0:9323", which is
-# true inside the container and useless from a browser on the host, so print
-# the routed URL immediately before handing over.
-report_advice() {
-  case "$1" in
-    127.0.0.1 | localhost | ::1)
-      echo "ddev-playwright: --host=$1 binds the report server to the container's" >&2
-      echo "loopback interface, where DDEV's router cannot reach it. Drop the flag --" >&2
-      echo "ddev playwright show-report binds 0.0.0.0 on its own." >&2
-      ;;
-    *)
-      if [ "$2" != "$REPORT_CONTAINER_PORT" ]; then
-        echo "ddev-playwright: the router only forwards to container port ${REPORT_CONTAINER_PORT}, so a" >&2
-        echo "report served on port ${2:-something else} is not reachable from the host." >&2
-      else
-        echo "ddev-playwright: view the report at $(report_url)"
-        echo "ddev-playwright: the address Playwright prints below is the in-container one."
-      fi
-      ;;
-  esac
-}
-
-# Both defaults match what the router expects, so a plain
-# `ddev playwright show-report` works with no flags at all. An explicit --host
-# or --port, right or wrong, is left alone: report_advice says why it will not
-# reach the browser rather than silently overriding it.
-is_show_report=false
-report_host=
-report_port=
+# This has to happen here rather than in configuration. show-report reads
+# neither playwright.config.ts nor PLAYWRIGHT_HTML_HOST -- both only reach the
+# html reporter's own auto-open path -- so the CLI flag is the only lever.
 if [ "$1" = "show-report" ]; then
-  is_show_report=true
-  report_host=0.0.0.0
-  report_port="$REPORT_CONTAINER_PORT"
-  host_given=false
-  # Playwright accepts both --host=VALUE and --host VALUE, so track the case
-  # where the value is the next argument rather than part of this one.
+  # Prepended, not appended: Playwright's last --host wins, so a flag the user
+  # typed still overrides this default in either --host=VALUE or --host VALUE
+  # form, and a trailing flag never swallows ours as its missing value.
+  shift
+  set -- show-report --host=0.0.0.0 "$@"
+fi
+
+# Say where the report will actually be reachable. Playwright prints
+# "Serving HTML report at http://0.0.0.0:9323", which is true inside the
+# container and useless from a browser on the host.
+#
+# The scan runs over the final argument list, so what it finds is the host and
+# port Playwright will settle on, default included.
+report_advice() {
+  [ "$1" = "show-report" ] || return 0
+
+  advice_host=
+  advice_port="$REPORT_CONTAINER_PORT"
   pending=
   for arg in "$@"; do
     case "$pending" in
-      host) report_host="$arg" pending= ; continue ;;
-      port) report_port="$arg" pending= ; continue ;;
+      host) advice_host="$arg" pending= ; continue ;;
+      port) advice_port="$arg" pending= ; continue ;;
     esac
     case "$arg" in
-      --host=*) report_host="${arg#--host=}" host_given=true ;;
-      --port=*) report_port="${arg#--port=}" ;;
-      --host) pending=host host_given=true ;;
+      --host=*) advice_host="${arg#--host=}" ;;
+      --port=*) advice_port="${arg#--port=}" ;;
+      --host) pending=host ;;
       --port) pending=port ;;
     esac
   done
-  if [ "$host_given" = false ]; then
-    set -- "$@" --host="$report_host"
-  fi
-fi
 
-run_playwright() {
-  if [ "$is_show_report" = true ]; then
-    report_advice "$report_host" "$report_port"
+  # A trailing --host or --port with no value. Playwright rejects that command
+  # line, so promise nothing about a server that is not going to start.
+  [ -z "$pending" ] || return 0
+
+  case "$advice_host" in
+    127.0.0.1 | localhost | ::1)
+      echo "ddev-playwright: --host=${advice_host} binds the report server to the container's" >&2
+      echo "loopback interface, where DDEV's router cannot reach it. Drop the flag --" >&2
+      echo "ddev playwright show-report binds 0.0.0.0 on its own." >&2
+      return 0
+      ;;
+  esac
+
+  if [ "$advice_port" != "$REPORT_CONTAINER_PORT" ]; then
+    echo "ddev-playwright: the router only forwards to container port ${REPORT_CONTAINER_PORT}, so a" >&2
+    echo "report served on any other port is not reachable from the host." >&2
+    return 0
   fi
-  exec "$@"
+
+  echo "ddev-playwright: view the report at $(report_url)"
+  echo "ddev-playwright: the address Playwright prints below is the in-container one."
 }
 
+# The advice prints after the install so it lands directly above Playwright's
+# own "Serving HTML report at ..." line, rather than scrolling away under the
+# package manager's output.
 if [ -f yarn.lock ]; then
   yarn || exit
-  run_playwright yarn playwright "$@"
+  report_advice "$@"
+  exec yarn playwright "$@"
 else
   npm ci || exit
-  run_playwright npx playwright "$@"
+  report_advice "$@"
+  exec npx playwright "$@"
 fi

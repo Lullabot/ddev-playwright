@@ -145,25 +145,28 @@ verify_run_playwright() {
   verify_show_report
 }
 
-# The HTML report is only reachable through DDEV's router, and the router
-# connects to the web container over the Docker network -- never over the
-# container's loopback interface. A report server bound to 127.0.0.1 is
-# therefore invisible to it, and the routed URL answers 502 Bad Gateway, which
-# is what https://github.com/Lullabot/ddev-playwright/issues/103 reported after
-# the README started recommending --host=127.0.0.1.
-#
-# So this asserts the routed URL, not the in-container one: a test that curled
-# the container port directly would pass with either binding and catch nothing.
+# Assert through the routed URL, not the container port: a request straight to
+# 9323 succeeds whichever interface the report server bound, so it would not
+# catch https://github.com/Lullabot/ddev-playwright/issues/103. See the comment
+# above report_advice in commands/web/playwright for why the binding matters.
 verify_show_report() {
   local log="${TESTDIR}/show-report.log"
+  local url="https://${PROJNAME}.ddev.site:9324"
 
   ddev playwright show-report >"${log}" 2>&1 &
   local report_pid=$!
 
   local code=""
-  local attempt
-  for attempt in $(seq 1 30); do
-    code=$(curl -sk -o /dev/null -w '%{http_code}' "https://${PROJNAME}.ddev.site:9324/" || true)
+  # `ddev playwright show-report` reinstalls dependencies before it starts the
+  # server -- `npm ci` deletes and rebuilds node_modules every time, which is
+  # pure waste for a subcommand that only serves a directory. Until that is
+  # fixed this budget has to cover a full install on a loaded runner, not just
+  # the few seconds the report server itself needs.
+  #
+  # --max-time keeps that budget honest: without it a router that accepts and
+  # then hangs would stretch each attempt out to curl's own default timeout.
+  for _ in $(seq 1 60); do
+    code=$(curl -sk --max-time 5 -o /dev/null -w '%{http_code}' "${url}/" || true)
     if [ "${code}" = "200" ]; then
       break
     fi
@@ -174,7 +177,12 @@ verify_show_report() {
   wait "${report_pid}" >/dev/null 2>&1 || true
   # Killing the host-side `ddev` leaves the report server running inside the
   # container, holding port 9323 against the next test in this project.
-  ddev exec -- pkill -f 'playwright.*show-report' >/dev/null 2>&1 || true
+  #
+  # `ddev exec` runs this through a shell, so the wrapper's own command line
+  # contains the pattern and pkill -f would match -- and signal -- its own
+  # parent. The bracket makes the pattern match the report server without
+  # matching the literal text of the pkill invocation.
+  ddev exec -- pkill -f '[p]laywright.*show-report' >/dev/null 2>&1 || true
 
   echo "# show-report log:" >&3
   sed 's/^/# /' "${log}" >&3
@@ -182,7 +190,7 @@ verify_show_report() {
   # The URL the user is meant to open, printed above Playwright's own
   # "Serving HTML report at http://0.0.0.0:9323" line.
   run cat "${log}"
-  assert_output --partial "view the report at https://${PROJNAME}.ddev.site:9324"
+  assert_output --partial "view the report at ${url}"
 
   assert_equal "${code}" "200"
 }
