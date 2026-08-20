@@ -137,8 +137,54 @@ verify_run_playwright() {
 
   assert_invariant_layers_precede_browser_install
 
-  # Verify we can run an example test.
-  ddev playwright test --reporter=line
+  # Verify we can run an example test. The reporters come from
+  # playwright.config.ts (line + html); the html one leaves behind a report for
+  # verify_show_report to serve.
+  ddev playwright test
+
+  verify_show_report
+}
+
+# The HTML report is only reachable through DDEV's router, and the router
+# connects to the web container over the Docker network -- never over the
+# container's loopback interface. A report server bound to 127.0.0.1 is
+# therefore invisible to it, and the routed URL answers 502 Bad Gateway, which
+# is what https://github.com/Lullabot/ddev-playwright/issues/103 reported after
+# the README started recommending --host=127.0.0.1.
+#
+# So this asserts the routed URL, not the in-container one: a test that curled
+# the container port directly would pass with either binding and catch nothing.
+verify_show_report() {
+  local log="${TESTDIR}/show-report.log"
+
+  ddev playwright show-report >"${log}" 2>&1 &
+  local report_pid=$!
+
+  local code=""
+  local attempt
+  for attempt in $(seq 1 30); do
+    code=$(curl -sk -o /dev/null -w '%{http_code}' "https://${PROJNAME}.ddev.site:9324/" || true)
+    if [ "${code}" = "200" ]; then
+      break
+    fi
+    sleep 2
+  done
+
+  kill "${report_pid}" >/dev/null 2>&1 || true
+  wait "${report_pid}" >/dev/null 2>&1 || true
+  # Killing the host-side `ddev` leaves the report server running inside the
+  # container, holding port 9323 against the next test in this project.
+  ddev exec -- pkill -f 'playwright.*show-report' >/dev/null 2>&1 || true
+
+  echo "# show-report log:" >&3
+  sed 's/^/# /' "${log}" >&3
+
+  # The URL the user is meant to open, printed above Playwright's own
+  # "Serving HTML report at http://0.0.0.0:9323" line.
+  run cat "${log}"
+  assert_output --partial "view the report at https://${PROJNAME}.ddev.site:9324"
+
+  assert_equal "${code}" "200"
 }
 
 # Guard the Dockerfile layer ordering.
