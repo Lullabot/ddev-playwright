@@ -94,10 +94,9 @@ ddev-playwright: the address Playwright prints below is the in-container one.
 Playwright's own line is accurate, but describes the address *inside* the
 container. The router publishes it on the host at the port in the table above.
 
-### Reaching any server you start in the container
+### Accessing other Playwright HTTP services beyond show-report
 
-Two rules govern every server started inside the web container, not just the
-report:
+When running commands like `show-trace`, always:
 
 1. **Bind `0.0.0.0`, never `localhost`.** The router connects over the Docker
    network, so a server on the container's loopback interface is invisible to
