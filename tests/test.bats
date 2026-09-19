@@ -137,8 +137,62 @@ verify_run_playwright() {
 
   assert_invariant_layers_precede_browser_install
 
-  # Verify we can run an example test.
-  ddev playwright test --reporter=line
+  # Verify we can run an example test. The reporters come from
+  # playwright.config.ts (line + html); the html one leaves behind a report for
+  # verify_show_report to serve.
+  ddev playwright test
+
+  verify_show_report
+}
+
+# Assert through the routed URL, not the container port: a request straight to
+# 9323 succeeds whichever interface the report server bound, so it would not
+# catch https://github.com/Lullabot/ddev-playwright/issues/103. See the comment
+# above report_advice in commands/web/playwright for why the binding matters.
+verify_show_report() {
+  local log="${TESTDIR}/show-report.log"
+  local url="https://${PROJNAME}.ddev.site:9324"
+
+  ddev playwright show-report >"${log}" 2>&1 &
+  local report_pid=$!
+
+  local code=""
+  # `ddev playwright show-report` reinstalls dependencies before it starts the
+  # server -- `npm ci` deletes and rebuilds node_modules every time, which is
+  # pure waste for a subcommand that only serves a directory. Until that is
+  # fixed this budget has to cover a full install on a loaded runner, not just
+  # the few seconds the report server itself needs.
+  #
+  # --max-time keeps that budget honest: without it a router that accepts and
+  # then hangs would stretch each attempt out to curl's own default timeout.
+  for _ in $(seq 1 60); do
+    code=$(curl -sk --max-time 5 -o /dev/null -w '%{http_code}' "${url}/" || true)
+    if [ "${code}" = "200" ]; then
+      break
+    fi
+    sleep 2
+  done
+
+  kill "${report_pid}" >/dev/null 2>&1 || true
+  wait "${report_pid}" >/dev/null 2>&1 || true
+  # Killing the host-side `ddev` leaves the report server running inside the
+  # container, holding port 9323 against the next test in this project.
+  #
+  # `ddev exec` runs this through a shell, so the wrapper's own command line
+  # contains the pattern and pkill -f would match -- and signal -- its own
+  # parent. The bracket makes the pattern match the report server without
+  # matching the literal text of the pkill invocation.
+  ddev exec -- pkill -f '[p]laywright.*show-report' >/dev/null 2>&1 || true
+
+  echo "# show-report log:" >&3
+  sed 's/^/# /' "${log}" >&3
+
+  # The URL the user is meant to open, printed above Playwright's own
+  # "Serving HTML report at http://0.0.0.0:9323" line.
+  run cat "${log}"
+  assert_output --partial "view the report at ${url}"
+
+  assert_equal "${code}" "200"
 }
 
 # Guard the Dockerfile layer ordering.
