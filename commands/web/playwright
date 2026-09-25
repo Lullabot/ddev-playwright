@@ -4,9 +4,15 @@
 cd "${PLAYWRIGHT_TEST_DIR:-test/playwright}" || exit 1
 
 # Browser profiles contain many small files. Keep them on the add-on's tmpfs
-# so parallel workers do not contend on the host-backed /tmp filesystem.
-if [ -d /tmp/sqlite ] && mkdir -p /tmp/sqlite/playwright-tmp; then
-  export TMPDIR=/tmp/sqlite/playwright-tmp
+# so parallel workers do not contend on the host-backed /tmp filesystem. A
+# directory per invocation keeps concurrent runs isolated and lets the wrapper
+# remove anything Playwright leaves behind after a normal or failed run.
+if [ -d /tmp/sqlite ]; then
+  browser_tmp=$(mktemp -d /tmp/sqlite/playwright-tmp.XXXXXX) || browser_tmp=
+  if [ -n "$browser_tmp" ]; then
+    export TMPDIR="$browser_tmp"
+    trap 'rm -rf "$browser_tmp"' EXIT
+  fi
 fi
 
 if [ -f yarn.lock ]; then
