@@ -21,6 +21,7 @@ project_files:
   - config.playwright.yml
   - docker-compose.sqlite.yaml
   - web-entrypoint.d/mkcert-nssdb.sh
+  - web-entrypoint.d/php-fpm-capacity.sh
 
 # Manage .gitignore entries via post_install_actions so other addons (e.g.
 # ddev-playwright-cli) can append their own entries without being overwritten.
