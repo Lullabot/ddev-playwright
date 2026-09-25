@@ -67,6 +67,7 @@ get_addon() {
   echo "# ddev get ${DIR} with project ${PROJNAME} in ${TESTDIR} ($(pwd))" >&3
   ddev get "${DIR}"
   assert [ -f .ddev/config.playwright.yml ]
+  assert [ -f .ddev/docker-compose.sqlite.yaml ]
   assert [ -f .ddev/commands/host/install-playwright ]
   assert [ -f .ddev/commands/web/playwright ]
   assert [ -f .ddev/web-build/.gitignore ]
@@ -121,6 +122,12 @@ verify_run_playwright() {
   mkdir -p "${playwright_dir}/tests"
   cp "$DIR"/tests/testdata/phpinfo.spec.ts "${playwright_dir}/tests/phpinfo.spec.ts"
   health_checks
+
+  # Both paths expose the same tmpfs: the namespaced path is preferred, while
+  # /tmp/sqlite remains mounted for older playwright-drupal versions.
+  run ddev exec -- sh -c 'mkdir -p /tmp/ddev-playwright/sqlite && touch /tmp/ddev-playwright/compatibility-check && test -f /tmp/sqlite/compatibility-check'
+  assert_success
+  ddev exec -- rm -f /tmp/ddev-playwright/compatibility-check
 
   # Verify kasmvnc is listening.
   curl -s https://"${PROJNAME}".ddev.site:8444/
