@@ -77,6 +77,7 @@ get_addon() {
   assert [ -x .ddev/web-build/install-task.sh ]
   assert [ -f .ddev/web-build/kasmvnc.yaml ]
   assert [ -f .ddev/web-build/xstartup ]
+  assert [ -x .ddev/web-entrypoint.d/php-fpm-capacity.sh ]
   mkdir "${1:-test}"
 }
 
@@ -99,6 +100,21 @@ verify_run_playwright() {
   assert [ -f web/index.php ]
   seed_test_artifacts "${playwright_dir}"
   ddev install-playwright
+
+  # Playwright fans each worker out into several concurrent PHP requests. The
+  # entrypoint should size PHP-FPM from the CPUs visible to the web container,
+  # while retaining the lower and upper bounds used on tiny and large hosts.
+  run ddev exec bash -c '
+    max_children=$(($(nproc) * 2))
+    if (( max_children < 8 )); then max_children=8; fi
+    if (( max_children > 96 )); then max_children=96; fi
+    pool_config="/etc/php/${DDEV_PHP_VERSION}/fpm/pool.d/www.conf"
+    grep -qx "pm.max_children = ${max_children}" "$pool_config" &&
+      grep -qx "pm.start_servers = $((max_children / 2))" "$pool_config" &&
+      grep -qx "pm.min_spare_servers = $((max_children / 3))" "$pool_config" &&
+      grep -qx "pm.max_spare_servers = $((max_children * 2 / 3))" "$pool_config"
+  '
+  assert_success
 
   ddev exec -- which task
 
