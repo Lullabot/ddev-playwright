@@ -81,10 +81,14 @@ The following services are exposed with this addon:
 
 ## SQLite tmpfs mount
 
-This addon mounts `/tmp/sqlite` as a tmpfs (in-memory) volume. The
+This addon mounts `/tmp/ddev-playwright` as a tmpfs (in-memory) volume. The
 [`@lullabot/playwright-drupal`](https://www.npmjs.com/package/@lullabot/playwright-drupal)
-package uses this path for per-test SQLite database copies, and keeping
+package uses `/tmp/ddev-playwright/sqlite` for per-test SQLite database copies, and keeping
 the I/O in memory significantly improves parallel test performance. Feel free to use it for your own database driven tests.
+
+For compatibility with existing versions of `@lullabot/playwright-drupal`, the
+same tmpfs remains mounted at `/tmp/sqlite`. Legacy versions therefore keep
+their existing path, while newer versions can use the namespaced directory.
 
 Because tmpfs is volatile, `ddev restart` will clear the volume.
 

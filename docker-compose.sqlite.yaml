@@ -1,9 +1,13 @@
 #ddev-generated
-# Move the SQLite test database to a tmpfs mount for faster I/O during
-# Playwright tests. With this, ddev restart will reset the database!
+# Provide shared tmpfs storage for Playwright tooling. SQLite databases live
+# below it, and ddev restart clears everything stored here.
 services:
   web:
     volumes:
+      - source: sqlite_database
+        target: /tmp/ddev-playwright
+        type: volume
+      # Legacy mount for existing @lullabot/playwright-drupal versions.
       - source: sqlite_database
         target: /tmp/sqlite
         type: volume
@@ -12,3 +16,4 @@ volumes:
     driver_opts:
       type: tmpfs
       device: tmpfs
+      o: mode=1777
