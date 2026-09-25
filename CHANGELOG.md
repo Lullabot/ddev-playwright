@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.5.7](https://github.com/Lullabot/ddev-playwright/compare/v0.5.6...v0.5.7) (2026-09-25)
+
+
+### Features
+
+* **perf:** increase PHP-FPM capacity for Playwright ([#158](https://github.com/Lullabot/ddev-playwright/issues/158)) ([77da0ca](https://github.com/Lullabot/ddev-playwright/commit/77da0ca12b9164e3b59b33de0bf7199247c9a5f3))
+* **perf:** store browser profiles on tmpfs ([#159](https://github.com/Lullabot/ddev-playwright/issues/159)) ([b5110e0](https://github.com/Lullabot/ddev-playwright/commit/b5110e084ee1dda576e16dea673b44cd368c5ae7))
+
+
+### Bug Fixes
+
+* bind the report server where DDEV's router can reach it ([#142](https://github.com/Lullabot/ddev-playwright/issues/142)) ([6406e61](https://github.com/Lullabot/ddev-playwright/commit/6406e611d4c15fd3e371930f776d2b981f037d3b))
+
 ## [0.5.6](https://github.com/Lullabot/ddev-playwright/compare/v0.5.5...v0.5.6) (2026-08-14)
 
 
