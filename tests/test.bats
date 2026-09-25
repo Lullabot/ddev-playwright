@@ -104,17 +104,17 @@ verify_run_playwright() {
   # Playwright fans each worker out into several concurrent PHP requests. The
   # entrypoint should size PHP-FPM from the CPUs visible to the web container,
   # while retaining the lower and upper bounds used on tiny and large hosts.
-  run ddev exec bash -c '
-    max_children=$(($(nproc) * 2))
-    if (( max_children < 8 )); then max_children=8; fi
-    if (( max_children > 96 )); then max_children=96; fi
-    pool_config="/etc/php/${DDEV_PHP_VERSION}/fpm/pool.d/www.conf"
-    grep -qx "pm.max_children = ${max_children}" "$pool_config" &&
-      grep -qx "pm.start_servers = $((max_children / 2))" "$pool_config" &&
-      grep -qx "pm.min_spare_servers = $((max_children / 3))" "$pool_config" &&
-      grep -qx "pm.max_spare_servers = $((max_children * 2 / 3))" "$pool_config"
-  '
-  assert_success
+  local max_children php_version pool_config
+  max_children=$(($(ddev exec -- nproc) * 2))
+  if (( max_children < 8 )); then max_children=8; fi
+  if (( max_children > 96 )); then max_children=96; fi
+  php_version=$(ddev exec -- printenv DDEV_PHP_VERSION)
+  pool_config="/etc/php/${php_version}/fpm/pool.d/www.conf"
+
+  ddev exec -- grep -qx "pm.max_children = ${max_children}" "$pool_config"
+  ddev exec -- grep -qx "pm.start_servers = $((max_children / 2))" "$pool_config"
+  ddev exec -- grep -qx "pm.min_spare_servers = $((max_children / 3))" "$pool_config"
+  ddev exec -- grep -qx "pm.max_spare_servers = $((max_children * 2 / 3))" "$pool_config"
 
   ddev exec -- which task
 
