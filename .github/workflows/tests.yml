@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-    - uses: ddev/github-action-add-on-test@f3c9bdf946f33f6990098767cd00caaa5ef75f75 # v2.6.0
+    - uses: ddev/github-action-add-on-test@41eb1229ad5cd5b99c7d782321ef42f720873e4d # v2.6.1
       with:
         ddev_version: ${{ matrix.ddev_version }}
         addon_repository: ${{ github.repository }}
