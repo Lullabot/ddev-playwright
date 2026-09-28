@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.8](https://github.com/Lullabot/ddev-playwright/compare/v0.5.7...v0.5.8) (2026-09-28)
+
+
+### deps
+
+* release user-facing task updates ([#166](https://github.com/Lullabot/ddev-playwright/issues/166)) ([49be405](https://github.com/Lullabot/ddev-playwright/commit/49be405c7eb80b5b18565ca8125d13c09038046b))
+
 ## [0.5.7](https://github.com/Lullabot/ddev-playwright/compare/v0.5.6...v0.5.7) (2026-09-25)
 
 
