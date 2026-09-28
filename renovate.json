@@ -13,6 +13,15 @@
       "matchStrings": ["https://astral\\.sh/uv/(?<currentValue>[^/]+)/install\\.sh"],
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "astral-sh/uv"
+    },
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/web-build/Dockerfile\\.10-go-task$/"
+      ],
+      "matchStrings": ["install-task\\.sh .* -d (?<currentValue>\\S+)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "go-task/task"
     }
   ],
   "automerge": true,
