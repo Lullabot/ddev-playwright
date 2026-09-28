@@ -28,6 +28,11 @@
   "minimumReleaseAge": "3 days",
   "packageRules": [
     {
+      "description": "Treat Task updates as user-facing dependencies.",
+      "matchPackageNames": ["go-task/task"],
+      "semanticCommitType": "deps"
+    },
+    {
       "description": "Never automerge a digest-only update: that is an existing action tag being repointed at a new commit, which needs a human to look at it.",
       "matchDepTypes": ["action"],
       "matchUpdateTypes": ["digest"],

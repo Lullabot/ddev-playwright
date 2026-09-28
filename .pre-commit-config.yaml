@@ -7,6 +7,7 @@ repos:
         args:
           - chore
           - ci
+          - deps
           - docs
           - feat
           - fix
