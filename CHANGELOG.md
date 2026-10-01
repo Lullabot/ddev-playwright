@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.9](https://github.com/Lullabot/ddev-playwright/compare/v0.5.8...v0.5.9) (2026-10-01)
+
+
+### Bug Fixes
+
+* install libsoup 3.6.6 for WebKit navigation crashes ([#168](https://github.com/Lullabot/ddev-playwright/issues/168)) ([3ae5803](https://github.com/Lullabot/ddev-playwright/commit/3ae580309e8c7d9359785eff376f872573b369d3))
+
 ## [0.5.8](https://github.com/Lullabot/ddev-playwright/compare/v0.5.7...v0.5.8) (2026-09-28)
 
 
