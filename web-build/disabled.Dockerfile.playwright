@@ -19,6 +19,26 @@ RUN mv /etc/apt/apt.conf.d/docker-clean /etc/apt/docker-clean-disabled
 # ddev concatenates web-build/Dockerfile.* in alphabetical order, and digits
 # sort ahead of letters, so those land before this file.
 
+# Playwright's Linux WebKit NetworkProcess uses the system libsoup. Debian
+# trixie's 3.6.5 can crash during navigation; libsoup 3.6.6 fixes the
+# underlying session use-after-free. Pin the Debian package and checksum so
+# local visual tests use the fixed library until the DDEV base image catches up.
+# https://github.com/microsoft/playwright/issues/42803
+RUN set -eu; \
+  arch="$(dpkg --print-architecture)"; \
+  case "$arch" in \
+    amd64) checksum=25229b4e3844c54a3f2d03c6f8bab381aab78ca1d5f94c1c8857f5f36d2d5f2e ;; \
+    arm64) checksum=bf177bec98b0e5b902e89f0e911985d34e5fd553382ca91678aad5e4950872e3 ;; \
+    *) echo "Unsupported Playwright architecture: $arch" >&2; exit 1 ;; \
+  esac; \
+  package=/tmp/libsoup-3.0-0_3.6.6-1.deb; \
+  curl -fsSL "https://deb.debian.org/debian/pool/main/libs/libsoup3/libsoup-3.0-0_3.6.6-1_${arch}.deb" -o "$package"; \
+  echo "$checksum  $package" | sha256sum -c -; \
+  apt-get update; \
+  apt-get install -y --no-install-recommends "$package"; \
+  rm "$package"; \
+  rm -rf /var/lib/apt/lists/*
+
 # libnss3-tools lets the web-entrypoint.d mkcert-nssdb.sh script populate the
 # user's NSS database with DDEV's mkcert root CA — required for Chromium-based
 # browsers to trust *.ddev.site HTTPS certificates without `ignoreHTTPSErrors`.
