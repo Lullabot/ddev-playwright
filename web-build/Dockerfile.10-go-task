@@ -1,4 +1,4 @@
 #ddev-generated
 COPY install-task.sh /usr/local/bin
 RUN chmod +x /usr/local/bin/install-task.sh
-RUN install-task.sh -b /usr/local/bin -d v3.53.1
+RUN install-task.sh -b /usr/local/bin -d v3.54.0
