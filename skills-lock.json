@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "st-code-review": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-code-review/SKILL.md",
+      "computedHash": "5a8e4d8a4446b36103770f8aa1120426cfa2e8436214d94618143479328547fe"
+    },
+    "st-create-plan": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-create-plan/SKILL.md",
+      "computedHash": "721ca71cee9266a96138ae6e66d36c19654bc63478fede4c7b0075fc7973a3ac"
+    },
+    "st-execute-blueprint": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-execute-blueprint/SKILL.md",
+      "computedHash": "593ab752a395709277c87f50c41962917998ea5de3fae03233a55f08d7ea0fac"
+    },
+    "st-execute-task": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-execute-task/SKILL.md",
+      "computedHash": "e14021f80f17680d2f5dd0ef4a6ce2211c130ec9dfcc6640f2904e7b58c9365f"
+    },
+    "st-full-workflow": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-full-workflow/SKILL.md",
+      "computedHash": "9ef55a5e8301900e04e9214346a09df84b15ab88738b1769ad373fa55d371e31"
+    },
+    "st-generate-tasks": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-generate-tasks/SKILL.md",
+      "computedHash": "73dc56ccbc67be5327e29b1533d86c0e428c7bbd941cb0df920006df5f4ce7fe"
+    },
+    "st-refine-plan": {
+      "source": "e0ipso/strikethroo",
+      "sourceType": "github",
+      "skillPath": "skills/st-refine-plan/SKILL.md",
+      "computedHash": "f1e48315aff61812d87739e49c21bf203695fb023832115833fa6bca472aca12"
+    }
+  }
+}

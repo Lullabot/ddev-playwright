@@ -1,0 +1,132 @@
+---
+name: st-refine-plan
+description: Use when the user asks to review, refine, improve, interrogate, pressure-test, or update an existing Strikethroo plan by plan ID in this repository — triggers include refine plan, improve plan, review plan, red-team the plan, update plan. Do not use to create a new plan, to generate tasks, or for generic brainstorming outside Strikethroo.
+---
+
+# st-refine-plan
+
+## Inputs
+
+The user supplies the numeric plan ID conversationally, plus any optional refinement notes.
+
+## Operating Procedure
+
+### 1. Locate the strikethroo root
+
+Run `scripts/find-strikethroo-root.cjs` from the user's working directory. If
+it exits non-zero, stop and ask the user to run `npx strikethroo init`.
+
+Treat the path it prints as `<root>` for every subsequent step.
+
+Delegated execution workers skip this step and do not emit update notices.
+
+Run `scripts/check-for-updates.cjs "<root>"` as a separate command using this
+skill's script path. Keep the user's working directory. Read the one JSON line
+on stdout. When `notice` is present, retain its exact text for the final
+user-facing response. Never pause for permission and never run an update.
+
+### 2. Resolve the plan
+
+Run `scripts/validate-plan-blueprint.cjs <plan-id> planFile` for the plan
+file's absolute path. Another field name prints that field instead.
+
+If the script exits non-zero, stop and ask the user to confirm the plan ID.
+Do not guess a different ID.
+
+### 3. Load project context
+
+Read `<root>/config/STRIKETHROO.md` for this project's directory conventions.
+Read `<root>/config/hooks/PRE_PLAN.md` and execute its instructions before
+proceeding. Read `<root>/config/templates/PLAN_TEMPLATE.md`; the refined plan
+must still conform to it. Read `<root>/config/shared/clarification-gate.md`
+and apply it in the Clarification Loop.
+
+### 4. Baseline Review
+
+Read the entire plan end-to-end without modifying it. Record every
+contradiction and every gap you find under these lenses:
+
+- **Context gaps**: missing background, assumptions, competing priorities.
+- **Technical gaps**: underspecified architecture, unclear interfaces, missing diagrams.
+- **Risk gaps**: untracked risks, missing mitigations, hand-wavy success metrics.
+- **Scope issues**: gold-plating, ambiguous boundaries, requirements that
+  contradict YAGNI.
+
+Document each one as `{section, issue, severity, proposed fix}`.
+
+### 5. Clarification Loop
+
+**Default to Interactive Clarification.** Switch to **Autonomous
+Clarification** only when one of these holds without interpretation:
+
+- The user's request names the mode by intent, with a keyword such as "auto",
+  "autonomous", "non-interactive", "without asking me", or "don't ask".
+- An upstream orchestrator (for example the `st-full-workflow` skill) declared
+  autonomous operation for this invocation in the prompt passed to this skill.
+
+Otherwise use Interactive Clarification, even when the user's presence is
+uncertain. Do not infer autonomous mode from indirect signals such as terse
+prompts, scripted-looking input, or absence of recent user messages.
+
+Either branch starts from the gaps documented in the Baseline Review. Think
+harder before raising one: only put forward an uncertainty you can cite.
+Append every resolution to the plan document's "Plan Clarifications" table in
+its existing question/answer format, marking each entry's source.
+
+#### Interactive Clarification
+
+Follow the clarification cadence in `<root>/config/shared/clarification-gate.md`.
+
+1. Ask one question at a time per that cadence; never dump them as a batch.
+2. Prefill each question with the most plausible answer, and always offer an
+   "Other / open-ended" option for the nuances you did not anticipate.
+3. **STOP AND ASK**: Put each question to the user and halt execution to await
+   their input. Do not simulate the user's response. Do not proceed to step 6
+   until you have received explicit answers and confirmed the resolved scope.
+4. Record a question the user cannot or will not answer as unresolved, with
+   mitigation notes so downstream assistants know the risk, then proceed with
+   the available context.
+5. Re-evaluate whether the answers opened new gaps. If so, repeat this loop.
+
+#### Autonomous Clarification
+
+1. Resolve each gap from the codebase, its configuration files, its
+   documentation, and the project's established patterns. Fall back to a
+   reasonable assumption only where those do not answer it.
+2. Mark each resolution's source as "auto-resolved" (confirmed in the
+   codebase) or "assumption" (best-effort guess, with its rationale).
+3. Record a gap you can resolve neither way as unresolved, with mitigation
+   notes so downstream assistants know the risk.
+
+### 6. Refinement Implementation
+
+Refine the plan in place, at the path step 2 resolved.
+
+1. **Maintain Identity**: Keep the existing `id` and directory. Never allocate
+   a new plan ID and never move the plan.
+2. **Structure Compliance**: Keep the plan conformant to
+   `<root>/config/templates/PLAN_TEMPLATE.md`, adding any missing section.
+3. **Content Updates**:
+   - Refresh the executive summary against the clarifications.
+   - Update the architectural sections, diagrams, and risk mitigations the
+     gaps named.
+   - Trim scope creep that is not explicitly required.
+   - Point each affected section back at the Q&A table.
+4. **Net-New Sections**: Add a subsection the plan now needs (Decision Log,
+   Data Contracts) under `Notes`, clearly labeled.
+5. **Change Log**: Append to `Notes` a bullet stating what this session
+   changed, such as
+   `- 2025-03-16: Clarified auth flow tokens and updated architecture diagram`.
+
+### 7. Run the post-plan hook
+
+Execute `<root>/config/hooks/POST_PLAN.md`.
+
+When the retained update `notice` is present, append that exact sentence after
+the structured summary block, or after your final response when this skill emits
+no summary block. Nothing may follow the notice.
+
+## Failure Modes
+
+- **A helper script fails unexpectedly.** Surface stderr to the user and
+  stop — do not fall back to manual path discovery.

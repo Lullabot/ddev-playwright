@@ -1,0 +1,386 @@
+"use strict";
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+  // If the importer is in node compatibility mode or this is not an ESM
+  // file that has been converted to a CommonJS file using a Babel-
+  // compatible transform (i.e. "__esModule" has not been set), then set
+  // "default" to the CommonJS "module.exports" for node compatibility.
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  mod
+));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/skill-scripts/create-feature-branch.ts
+var create_feature_branch_exports = {};
+__export(create_feature_branch_exports, {
+  _extractPlanName: () => _extractPlanName,
+  _sanitizeBranchName: () => _sanitizeBranchName,
+  main: () => main
+});
+module.exports = __toCommonJS(create_feature_branch_exports);
+var path4 = __toESM(require("path"));
+
+// src/skill-scripts/shared/git-utils.ts
+var import_child_process = require("child_process");
+var GIT_OUTPUT_LIMIT = 64 * 1024 * 1024;
+var run = (args, opts) => (0, import_child_process.execFileSync)("git", [...args], {
+  cwd: opts.cwd,
+  input: opts.input,
+  encoding: "utf8",
+  stdio: ["pipe", "pipe", "pipe"],
+  maxBuffer: GIT_OUTPUT_LIMIT
+});
+var execGit = (args, opts = {}) => {
+  try {
+    const out = run(args, opts);
+    return opts.trim === false ? out : out.trim();
+  } catch {
+    return null;
+  }
+};
+
+// src/skill-scripts/shared/plan-resolve.ts
+var fs3 = __toESM(require("fs"));
+var path3 = __toESM(require("path"));
+
+// src/skill-scripts/shared/root.ts
+var fs = __toESM(require("fs"));
+var path = __toESM(require("path"));
+var EXPECTED_SCHEMA = true ? 4 : 4;
+var isValidStrikethrooRoot = (strikethrooPath) => {
+  try {
+    if (!fs.existsSync(strikethrooPath)) return false;
+    if (!fs.lstatSync(strikethrooPath).isDirectory()) return false;
+    const metadataPath = path.join(strikethrooPath, ".init-metadata.json");
+    if (!fs.existsSync(metadataPath)) return false;
+    const metadata = JSON.parse(fs.readFileSync(metadataPath, "utf8"));
+    return metadata && typeof metadata === "object" && "version" in metadata;
+  } catch (_err) {
+    return false;
+  }
+};
+var getStrikethrooAt = (directory) => {
+  const strikethrooPath = path.join(directory, ".ai", "strikethroo");
+  return isValidStrikethrooRoot(strikethrooPath) ? strikethrooPath : null;
+};
+var getParentPaths = (currentPath, acc = []) => {
+  const absolutePath = path.resolve(currentPath);
+  const nextAcc = [...acc, absolutePath];
+  const parentPath = path.dirname(absolutePath);
+  if (parentPath === absolutePath) return nextAcc;
+  return getParentPaths(parentPath, nextAcc);
+};
+var checkWorkspaceSchema = (strikethrooRoot) => {
+  let metadata;
+  try {
+    metadata = JSON.parse(
+      fs.readFileSync(path.join(strikethrooRoot, ".init-metadata.json"), "utf8")
+    );
+  } catch {
+    return;
+  }
+  const actual = typeof metadata.workspaceSchemaVersion === "number" ? metadata.workspaceSchemaVersion : 1;
+  if (actual === EXPECTED_SCHEMA) return;
+  if (actual < EXPECTED_SCHEMA) {
+    process.stderr.write(
+      `Workspace schema v${actual} is older than this skill requires (v${EXPECTED_SCHEMA}). Re-run \`npx strikethroo init\` with the latest CLI to update.
+`
+    );
+  } else {
+    process.stderr.write(
+      `This skill (built for workspace schema v${EXPECTED_SCHEMA}) is older than the workspace (v${actual}). Re-run \`npx skills add e0ipso/strikethroo\` to update skills.
+`
+    );
+  }
+  process.exit(1);
+};
+var findStrikethrooRoot = (startPath = process.cwd()) => {
+  const paths = getParentPaths(startPath);
+  const found = paths.find((p) => getStrikethrooAt(p));
+  if (!found) return null;
+  const root = getStrikethrooAt(found);
+  if (root) checkWorkspaceSchema(root);
+  return root;
+};
+
+// src/skill-scripts/shared/plan-scan.ts
+var fs2 = __toESM(require("fs"));
+var path2 = __toESM(require("path"));
+
+// src/skill-scripts/shared/frontmatter.ts
+var ID_PATTERNS = [
+  /^\s*["']?id["']?\s*:\s*["']?([+-]?\d+)["']?\s*(?:#.*)?$/im,
+  /^\s*id\s*:\s*([+-]?\d+)\s*(?:#.*)?$/im,
+  /^\s*["']?id["']?\s*:\s*"([+-]?\d+)"\s*(?:#.*)?$/im,
+  /^\s*["']?id["']?\s*:\s*'([+-]?\d+)'\s*(?:#.*)?$/im,
+  /^\s*["']id["']\s*:\s*([+-]?\d+)\s*(?:#.*)?$/im,
+  /^\s*id\s*:\s*[|>]\s*([+-]?\d+)\s*$/im
+];
+var validateId = (rawId) => {
+  const id = parseInt(rawId, 10);
+  if (Number.isNaN(id) || id < 0 || id > Number.MAX_SAFE_INTEGER) return null;
+  return id;
+};
+var extractIdFromMarkdown = (content) => {
+  const frontmatterMatch = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
+  if (!frontmatterMatch || !frontmatterMatch[1]) return null;
+  const block = frontmatterMatch[1];
+  for (const pattern of ID_PATTERNS) {
+    const match = block.match(pattern);
+    if (match && match[1]) {
+      const id = validateId(match[1]);
+      if (id !== null) return id;
+    }
+  }
+  return null;
+};
+var extractPlanId = (content, _filePath) => {
+  return extractIdFromMarkdown(content);
+};
+
+// src/skill-scripts/shared/plan-scan.ts
+var PLAN_EXTENSIONS = [".md"];
+var scanPlanDir = (planDirPath, dirName, isArchive) => {
+  let entries;
+  try {
+    entries = fs2.readdirSync(planDirPath, { withFileTypes: true });
+  } catch (_err) {
+    return [];
+  }
+  return entries.filter((e) => e.isFile() && PLAN_EXTENSIONS.some((ext) => e.name.endsWith(ext))).flatMap((e) => {
+    const filePath = path2.join(planDirPath, e.name);
+    try {
+      const content = fs2.readFileSync(filePath, "utf8");
+      const id = extractPlanId(content, filePath);
+      if (id === null) return [];
+      return [{ id, file: filePath, dir: planDirPath, isArchive, name: dirName }];
+    } catch (_err) {
+      return [];
+    }
+  });
+};
+var getAllPlans = (taskManagerRoot) => {
+  const sources = [
+    { dir: path2.join(taskManagerRoot, "plans"), isArchive: false },
+    { dir: path2.join(taskManagerRoot, "archive"), isArchive: true }
+  ];
+  return sources.flatMap(({ dir, isArchive }) => {
+    if (!fs2.existsSync(dir)) return [];
+    let entries;
+    try {
+      entries = fs2.readdirSync(dir, { withFileTypes: true });
+    } catch (_err) {
+      return [];
+    }
+    return entries.filter((e) => e.isDirectory()).flatMap((e) => scanPlanDir(path2.join(dir, e.name), e.name, isArchive));
+  });
+};
+
+// src/skill-scripts/shared/plan-resolve.ts
+var _classifyPlanInput = (input, isAbsolute2 = path3.isAbsolute) => {
+  if (input === null || input === void 0 || input === "") return { kind: "invalid" };
+  const candidate = String(input);
+  if (isAbsolute2(candidate)) return { kind: "path", planFile: candidate };
+  const planId = parseInt(candidate, 10);
+  return Number.isNaN(planId) ? { kind: "invalid" } : { kind: "id", planId };
+};
+var isValidRootDir = (strikethrooPath) => {
+  try {
+    if (!fs3.existsSync(strikethrooPath)) return false;
+    if (!fs3.lstatSync(strikethrooPath).isDirectory()) return false;
+    const metadataPath = path3.join(strikethrooPath, ".init-metadata.json");
+    if (!fs3.existsSync(metadataPath)) return false;
+    const metadata = JSON.parse(fs3.readFileSync(metadataPath, "utf8"));
+    return typeof metadata === "object" && metadata !== null;
+  } catch (_err) {
+    return false;
+  }
+};
+var checkStandardRootShortcut = (filePath) => {
+  const planDir = path3.dirname(filePath);
+  const parentDir = path3.dirname(planDir);
+  const possibleRoot = path3.dirname(parentDir);
+  const parentBase = path3.basename(parentDir);
+  if (parentBase !== "plans" && parentBase !== "archive") return null;
+  if (path3.basename(possibleRoot) !== "strikethroo") return null;
+  const dotAiDir = path3.dirname(possibleRoot);
+  if (path3.basename(dotAiDir) !== ".ai") return null;
+  return isValidRootDir(possibleRoot) ? possibleRoot : null;
+};
+var locateRootForPlanFile = (planFile) => {
+  const shortcut = checkStandardRootShortcut(planFile);
+  if (!shortcut) return findStrikethrooRoot(path3.dirname(planFile));
+  checkWorkspaceSchema(shortcut);
+  return shortcut;
+};
+var resolveByPath = (absolutePath) => {
+  let content;
+  try {
+    content = fs3.readFileSync(absolutePath, "utf8");
+  } catch (_err) {
+    return null;
+  }
+  const planId = extractPlanId(content, absolutePath);
+  if (planId === null) return null;
+  const tmRoot = locateRootForPlanFile(absolutePath);
+  if (!tmRoot) return null;
+  return {
+    planFile: absolutePath,
+    planDir: path3.dirname(absolutePath),
+    strikethrooRoot: tmRoot,
+    planId
+  };
+};
+var resolveById = (planId, startPath) => {
+  const tmRoot = findStrikethrooRoot(startPath);
+  if (!tmRoot) return null;
+  const match = getAllPlans(tmRoot).find((p) => p.id === planId);
+  if (!match) return null;
+  return {
+    planFile: match.file,
+    planDir: match.dir,
+    strikethrooRoot: tmRoot,
+    planId
+  };
+};
+var resolvePlan = (input, startPath = process.cwd()) => {
+  const classified = _classifyPlanInput(input);
+  switch (classified.kind) {
+    case "path":
+      return resolveByPath(classified.planFile);
+    case "id":
+      return resolveById(classified.planId, startPath);
+    case "invalid":
+      return null;
+  }
+};
+
+// src/skill-scripts/create-feature-branch.ts
+var _printError = (message) => {
+  console.error(`ERROR: ${message}`);
+};
+var _printSuccess = (message) => {
+  console.log(`\u2713 ${message}`);
+};
+var _printWarning = (message) => {
+  console.log(`\u26A0 ${message}`);
+};
+var _printInfo = (message) => {
+  console.log(message);
+};
+var _isGitRepo = () => {
+  const result = execGit(["rev-parse", "--is-inside-work-tree"]);
+  return result === "true";
+};
+var _getCurrentBranch = () => {
+  return execGit(["rev-parse", "--abbrev-ref", "HEAD"]);
+};
+var _getUncommittedChangesOutsideWorkspace = () => execGit(["status", "--porcelain", "--", ":(top)", ":(top,exclude).ai/strikethroo"]);
+var _branchExists = (branchName) => {
+  const localMatch = execGit(["branch", "--list", branchName]);
+  if (localMatch) {
+    const names = localMatch.split("\n").map((b) => b.trim().replace(/^\*\s*/, "")).filter(Boolean);
+    if (names.includes(branchName)) return true;
+  }
+  const remoteMatch = execGit(["branch", "-r", "--list", `origin/${branchName}`]);
+  if (remoteMatch && remoteMatch.trim().length > 0) return true;
+  return false;
+};
+var _sanitizeBranchName = (planName) => {
+  return planName.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "").substring(0, 60);
+};
+var _extractPlanName = (planDir) => {
+  const dirName = path4.basename(planDir);
+  const match = dirName.match(/^\d+--(.+)$/);
+  return match && match[1] ? match[1] : dirName;
+};
+var main = (startPath = process.cwd()) => {
+  if (process.argv.length < 3) {
+    _printError("Missing plan ID argument");
+    console.log("Usage: node create-feature-branch.cjs <plan-id-or-path>");
+    console.log("Example: node create-feature-branch.cjs 58");
+    process.exit(1);
+  }
+  const inputId = process.argv[2];
+  if (!_isGitRepo()) {
+    _printError("Not a git repository");
+    process.exit(1);
+  }
+  const resolved = resolvePlan(inputId, startPath);
+  if (!resolved) {
+    _printError(`Plan "${inputId}" not found or invalid`);
+    process.exit(1);
+  }
+  const { planDir, planId } = resolved;
+  _printInfo(`Found plan: ${path4.basename(planDir)}`);
+  const currentBranch = _getCurrentBranch();
+  if (!currentBranch) {
+    _printError("Could not determine current git branch");
+    process.exit(1);
+  }
+  if (currentBranch !== "main" && currentBranch !== "master") {
+    _printWarning(`Not on main/master branch (current: ${currentBranch})`);
+    _printInfo("Proceeding without creating a new branch");
+    process.exit(0);
+  }
+  const outsideWorkspaceStatus = _getUncommittedChangesOutsideWorkspace();
+  if (outsideWorkspaceStatus === null) {
+    _printError("Could not inspect git status; branch creation has been blocked");
+    process.exit(1);
+  }
+  if (outsideWorkspaceStatus.length > 0) {
+    _printError("Uncommitted changes detected outside .ai/strikethroo");
+    _printInfo("Commit or stash changes outside .ai/strikethroo before creating a feature branch");
+    process.exit(1);
+  }
+  const planName = _extractPlanName(planDir);
+  const sanitizedName = _sanitizeBranchName(planName);
+  const branchName = `feature/${planId}--${sanitizedName}`;
+  if (_branchExists(branchName)) {
+    if (currentBranch === branchName) {
+      _printSuccess(`Already on branch: ${branchName}`);
+      process.exit(0);
+    }
+    _printWarning(`Branch "${branchName}" already exists`);
+    const checkoutResult = execGit(["checkout", branchName]);
+    if (checkoutResult === null) {
+      _printError(`Failed to checkout branch "${branchName}"`);
+      process.exit(1);
+    }
+    _printSuccess(`Switched to existing branch: ${branchName}`);
+    process.exit(0);
+  }
+  const createResult = execGit(["checkout", "-b", branchName]);
+  if (createResult === null) {
+    _printError(`Failed to create branch "${branchName}"`);
+    process.exit(1);
+  }
+  _printSuccess(`Created and switched to branch: ${branchName}`);
+  process.exit(0);
+};
+if (require.main === module) {
+  main();
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  _extractPlanName,
+  _sanitizeBranchName,
+  main
+});
