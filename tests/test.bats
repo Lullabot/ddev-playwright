@@ -160,11 +160,16 @@ verify_run_playwright() {
 
   assert_invariant_layers_precede_browser_install
 
-  # Verify we can run an example test. The reporters come from
-  # playwright.config.ts (line + html); the html one leaves behind a report for
-  # verify_show_report to serve.
-  # Each browser controls the same desktop, so run them one at a time.
-  ddev playwright test --workers=1
+  # All KasmVNC clients control the same X display. Concurrent clients would
+  # interleave keyboard input in IceWM's command bar, so serialize only this
+  # desktop-control check. The add-on does not restrict downstream workers.
+  ddev playwright test kasmvnc.spec.ts --workers=1 --reporter=line
+
+  # Application tests have separate browser contexts and can run concurrently.
+  # Explicitly use three workers so CI exercises parallel application testing
+  # across Chromium, Firefox and WebKit, even when the fixture's CI default is
+  # one worker. Keep its line + html reporters for verify_show_report below.
+  ddev playwright test phpinfo.spec.ts --workers=3
 
   verify_show_report
 }

@@ -4,8 +4,9 @@ import { existsSync, rmSync } from 'node:fs';
 
 // Runs in Chromium, Firefox and WebKit, with no httpCredentials configured.
 // Loading the HTML alone misses failures in WebSocket auth or RFB negotiation.
+// KasmVNC is already running (test.bats checks HTTP readiness), so connection
+// setup uses the fixture's normal test and assertion timeouts.
 test('KasmVNC connects to the desktop without credentials', async ({ page }) => {
-  test.setTimeout(60_000);
   const url = new URL(process.env.DDEV_PRIMARY_URL!);
   url.port = '8444';
   url.searchParams.set('autoconnect', '1');
@@ -13,7 +14,7 @@ test('KasmVNC connects to the desktop without credentials', async ({ page }) => 
   const response = await page.goto(url.toString());
   expect(response?.status()).toBe(200);
   expect(response?.headers()['www-authenticate']).toBeUndefined();
-  await expect(page.locator('html')).toHaveClass(/noVNC_connected/, { timeout: 30_000 });
+  await expect(page.locator('html')).toHaveClass(/noVNC_connected/);
 
   // A completed RFB connection must have received the desktop dimensions.
   const canvas = page.locator('#noVNC_container canvas').first();
