@@ -12,6 +12,8 @@ _Example test validating phpinfo(), slowed down for the demo._
 * [What the browser install sees](#what-the-browser-install-sees)
 * [Contributing](#contributing)
 
+> Looking for something to help with writing tests? Take a look at [playwright-drupal](https://lullabot.github.io/playwright-drupal/latest/) for a full Drupal testing framework and [playwright-testing](https://lullabot.github.io/playwright-drupal/latest/generic-playwright-utilities/) for any other application.
+
 ## What is ddev-playwright?
 
 This repository contains an addon for integrating Playwright tests into your ddev project.
