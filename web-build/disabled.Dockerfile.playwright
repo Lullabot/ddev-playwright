@@ -85,7 +85,9 @@ COPY kasmvnc.yaml xstartup /home/$username/.vnc
 RUN chown $username:$username /home/$username/.vnc/*
 RUN sudo -u $username touch /home/$username/.vnc/.de-was-selected
 
-RUN sudo -u $username /bin/bash -c 'echo -e "secret\nsecret\n" | kasmvncpasswd -wo -u $USER'
+# KasmVNC 1.4.0's launcher requires an account even with -disableBasicAuth.
+# This random credential only satisfies that startup check; clients do not use it.
+RUN sudo -u $username /bin/bash -c 'password=$(openssl rand -hex 32); printf "%s\n%s\n" "$password" "$password" | kasmvncpasswd -wo -u "$USER"'
 
 # ---------------------------------------------------------------------------
 # End of VNC / desktop stack.

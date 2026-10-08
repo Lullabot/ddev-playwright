@@ -78,7 +78,7 @@ The following services are exposed with this addon:
 
 | Service                 | URL                               | Notes                                                                                      |
 |-------------------------|-----------------------------------|--------------------------------------------------------------------------------------------|
-| KasmVNC                 | https://\<PROJECT>.ddev.site:8444 | Username is your local username. Password is `secret`.                                     |
+| KasmVNC                 | https://\<PROJECT>.ddev.site:8444 | No login required.                                                                        |
 | Playwright Test Reports | https://\<PROJECT>.ddev.site:9324 | This port is changed from the default to not conflict with running Playwright on the host. |
 
 ## Viewing test reports

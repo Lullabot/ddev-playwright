@@ -121,6 +121,7 @@ verify_run_playwright() {
 
   mkdir -p "${playwright_dir}/tests"
   cp "$DIR"/tests/testdata/phpinfo.spec.ts "${playwright_dir}/tests/phpinfo.spec.ts"
+  cp "$DIR"/tests/testdata/kasmvnc.spec.ts "${playwright_dir}/tests/kasmvnc.spec.ts"
   health_checks
 
   # Both paths expose the same tmpfs: the namespaced path is preferred, while
@@ -129,12 +130,11 @@ verify_run_playwright() {
   assert_success
   ddev exec -- rm -f /tmp/ddev-playwright/compatibility-check
 
-  # Verify kasmvnc is listening.
-  curl -s https://"${PROJNAME}".ddev.site:8444/
-  curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/"
-  ddev logs
-  echo "#" curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" >&3
-  curl -s --user "$USER":secret https://"${PROJNAME}.ddev.site:8444/" | grep -q KasmVNC
+  # The HTTP client must load without credentials or an authentication challenge.
+  run curl --fail --silent --show-error --dump-header - "https://${PROJNAME}.ddev.site:8444/"
+  assert_success
+  assert_output --partial "KasmVNC"
+  refute_output --partial "WWW-Authenticate:"
 
   # Verify that browsers have been downloaded.
   #
@@ -160,10 +160,16 @@ verify_run_playwright() {
 
   assert_invariant_layers_precede_browser_install
 
-  # Verify we can run an example test. The reporters come from
-  # playwright.config.ts (line + html); the html one leaves behind a report for
-  # verify_show_report to serve.
-  ddev playwright test
+  # All KasmVNC clients control the same X display. Concurrent clients would
+  # interleave keyboard input in the focused window, so serialize only this
+  # desktop-control check. The add-on does not restrict downstream workers.
+  ddev playwright test kasmvnc.spec.ts --workers=1 --reporter=line
+
+  # Application tests have separate browser contexts and can run concurrently.
+  # Explicitly use three workers so CI exercises parallel application testing
+  # across Chromium, Firefox and WebKit, even when the fixture's CI default is
+  # one worker. Keep its line + html reporters for verify_show_report below.
+  ddev playwright test phpinfo.spec.ts --workers=3
 
   verify_show_report
 }
