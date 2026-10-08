@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.10](https://github.com/Lullabot/ddev-playwright/compare/v0.5.9...v0.5.10) (2026-10-08)
+
+
+### Bug Fixes
+
+* disable KasmVNC basic authentication ([#178](https://github.com/Lullabot/ddev-playwright/issues/178)) ([162472f](https://github.com/Lullabot/ddev-playwright/commit/162472ffe93490de011d703b2d163ebba868f7ec))
+
 ## [0.5.9](https://github.com/Lullabot/ddev-playwright/compare/v0.5.8...v0.5.9) (2026-10-01)
 
 
