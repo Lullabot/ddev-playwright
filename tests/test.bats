@@ -161,7 +161,7 @@ verify_run_playwright() {
   assert_invariant_layers_precede_browser_install
 
   # All KasmVNC clients control the same X display. Concurrent clients would
-  # interleave keyboard input in IceWM's command bar, so serialize only this
+  # interleave keyboard input in the focused window, so serialize only this
   # desktop-control check. The add-on does not restrict downstream workers.
   ddev playwright test kasmvnc.spec.ts --workers=1 --reporter=line
 
