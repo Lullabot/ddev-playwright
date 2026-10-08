@@ -85,7 +85,8 @@ web_environment:
 # We add the sleep so this doesn't error out when not using playwright.
 web_extra_daemons:
   - name: "kasmvnc"
-    command: "kasmvncserver -fg || sleep infinity"
+    # Basic Auth is disabled for both HTTP and the desktop WebSocket.
+    command: "kasmvncserver -fg -disableBasicAuth || sleep infinity"
     directory: /var/www/html
 web_extra_exposed_ports:
   - name: playwright
