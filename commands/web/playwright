@@ -1,6 +1,9 @@
 #!/bin/sh
 #ddev-generated
 
+# Web commands may start in a custom working_dir rather than the project root.
+# Keep relative test paths consistent with the build and host-side hooks.
+cd "${DDEV_APPROOT:-/var/www/html}" || exit 1
 cd "${PLAYWRIGHT_TEST_DIR:-test/playwright}" || exit 1
 
 # The container port config.playwright.yml routes the HTML report through, and

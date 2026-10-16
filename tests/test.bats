@@ -260,6 +260,9 @@ assert_invariant_layers_precede_browser_install() {
 
 @test "install from directory with npm" {
   get_addon
+  # Web commands must find tests from the project root even when DDEV starts
+  # them in the docroot (issue #184).
+  printf 'working_dir:\n  web: /var/www/html/web\n' > .ddev/config.working-dir.yaml
   cp -av "$DIR"/tests/testdata/npm-playwright test/playwright
   ddev exec -d /var/www/html/test/playwright npm ci
   verify_run_playwright
@@ -273,6 +276,7 @@ assert_invariant_layers_precede_browser_install() {
 
 @test "install from directory with npm and custom PLAYWRIGHT_TEST_DIR (tests/playwright)" {
   get_addon tests
+  printf 'working_dir:\n  web: /var/www/html/web\n' > .ddev/config.working-dir.yaml
   echo "PLAYWRIGHT_TEST_DIR=tests/playwright" > .ddev/.env
   cp -av "$DIR"/tests/testdata/npm-playwright tests/playwright
   ddev exec -d /var/www/html/tests/playwright npm ci
