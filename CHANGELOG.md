@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.11](https://github.com/Lullabot/ddev-playwright/compare/v0.5.10...v0.5.11) (2026-10-17)
+
+
+### Bug Fixes
+
+* resolve Playwright tests from the project root ([#185](https://github.com/Lullabot/ddev-playwright/issues/185)) ([063b55b](https://github.com/Lullabot/ddev-playwright/commit/063b55b19f1de88288f1a000dbd9b363484dadfa)), closes [#184](https://github.com/Lullabot/ddev-playwright/issues/184)
+
 ## [0.5.10](https://github.com/Lullabot/ddev-playwright/compare/v0.5.9...v0.5.10) (2026-10-08)
 
 
