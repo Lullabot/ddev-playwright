@@ -22,7 +22,7 @@ jobs:
         ddev_version: [stable, HEAD]
       fail-fast: false
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
     - uses: ddev/github-action-add-on-test@d614651ba8fffdb956ab7864f191c32353330d68 # v2.6.2
