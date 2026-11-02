@@ -35,6 +35,10 @@ The full setup workflow is:
 2. **Initialize Playwright** inside the container (creates `package.json`, config, etc.).
 4. **Run `ddev install-playwright`** to rebuild the web service with browser dependencies.
 
+> **Note:** Playwright 1.64.1 or later is required. Earlier WebKit builds
+> crash during navigation on the Debian trixie base image, so the web image
+> build fails if `@playwright/test` resolves to an older version.
+
 > **Tip:** Re-run `ddev restart` any time you update the Playwright
 > version in `test/playwright/package.json` so the matching browser binaries are
 > installed.
