@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0](https://github.com/Lullabot/ddev-playwright/compare/v0.5.11...v0.6.0) (2026-11-02)
+
+
+### ⚠ BREAKING CHANGES
+
+* require playwright 1.64.1 to fix missing libsoup package ([#195](https://github.com/Lullabot/ddev-playwright/issues/195))
+
+### Bug Fixes
+
+* require playwright 1.64.1 to fix missing libsoup package ([#195](https://github.com/Lullabot/ddev-playwright/issues/195)) ([4d48dae](https://github.com/Lullabot/ddev-playwright/commit/4d48daead05508c8ec3180a072d44f71acd1c8b2))
+
 ## [0.5.11](https://github.com/Lullabot/ddev-playwright/compare/v0.5.10...v0.5.11) (2026-10-17)
 
 
