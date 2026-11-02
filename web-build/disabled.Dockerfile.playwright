@@ -19,26 +19,6 @@ RUN mv /etc/apt/apt.conf.d/docker-clean /etc/apt/docker-clean-disabled
 # ddev concatenates web-build/Dockerfile.* in alphabetical order, and digits
 # sort ahead of letters, so those land before this file.
 
-# Playwright's Linux WebKit NetworkProcess uses the system libsoup. Debian
-# trixie's 3.6.5 can crash during navigation; libsoup 3.6.6 fixes the
-# underlying session use-after-free. Pin the Debian package and checksum so
-# local visual tests use the fixed library until the DDEV base image catches up.
-# https://github.com/microsoft/playwright/issues/42803
-RUN set -eu; \
-  arch="$(dpkg --print-architecture)"; \
-  case "$arch" in \
-    amd64) checksum=25229b4e3844c54a3f2d03c6f8bab381aab78ca1d5f94c1c8857f5f36d2d5f2e ;; \
-    arm64) checksum=bf177bec98b0e5b902e89f0e911985d34e5fd553382ca91678aad5e4950872e3 ;; \
-    *) echo "Unsupported Playwright architecture: $arch" >&2; exit 1 ;; \
-  esac; \
-  package=/tmp/libsoup-3.0-0_3.6.6-1.deb; \
-  curl -fsSL "https://deb.debian.org/debian/pool/main/libs/libsoup3/libsoup-3.0-0_3.6.6-1_${arch}.deb" -o "$package"; \
-  echo "$checksum  $package" | sha256sum -c -; \
-  apt-get update; \
-  apt-get install -y --no-install-recommends "$package"; \
-  rm "$package"; \
-  rm -rf /var/lib/apt/lists/*
-
 # libnss3-tools lets the web-entrypoint.d mkcert-nssdb.sh script populate the
 # user's NSS database with DDEV's mkcert root CA — required for Chromium-based
 # browsers to trust *.ddev.site HTTPS certificates without `ignoreHTTPSErrors`.
@@ -133,6 +113,9 @@ RUN sudo -u $username /bin/bash -c 'password=$(openssl rand -hex 32); printf "%s
 #    See https://github.com/microsoft/playwright/blob/7f55e117ce4d/packages/playwright-core/src/server/registry/index.ts#L1080-L1081
 # 4. Then we remove the symlink, and copy the cache directory into ~/.cache so
 #    it is persisted in the image.
+# 5. Playwright older than 1.64.1 is rejected. Earlier WebKit builds crash
+#    during navigation on Debian trixie's libsoup 3.6.5; 1.64 includes the fix.
+#    https://github.com/microsoft/playwright/issues/42803
 #
 # See https://github.com/ddev/ddev/issues/4727.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
@@ -154,6 +137,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
      else \
        export JS_PKG_MANAGER=npx; \
        sudo -u $username npm install; \
+     fi \
+  && PLAYWRIGHT_VERSION=$(sudo -u $username $JS_PKG_MANAGER playwright --version | awk '{print $2}') \
+  && if [ "$(printf '%s\n' 1.64.1 "$PLAYWRIGHT_VERSION" | sort -V | head -n1)" != "1.64.1" ]; then \
+       echo "ddev-playwright requires Playwright 1.64.1 or later, but __PLAYWRIGHT_TEST_DIR__ has ${PLAYWRIGHT_VERSION:-an unknown version}." >&2; \
+       echo "Update @playwright/test in __PLAYWRIGHT_TEST_DIR__/package.json and run ddev restart." >&2; \
+       exit 1; \
      fi \
   && sudo -u $username $JS_PKG_MANAGER playwright install-deps \
   && sudo -u $username PLAYWRIGHT_SKIP_BROWSER_GC=1 $JS_PKG_MANAGER playwright install \

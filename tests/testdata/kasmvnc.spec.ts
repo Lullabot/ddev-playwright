@@ -41,6 +41,16 @@ test('KasmVNC connects to the desktop without credentials', async ({ page }) => 
     // The kiosk window fills the desktop with the textarea. A remote click
     // focuses it, then KasmVNC transports the keystrokes to that window.
     await canvas.click();
+
+    // Since Playwright 1.64, keystrokes sent right after the click can be
+    // dropped before the remote window accepts input. Probe until one lands,
+    // then clear the textarea locally so only the full string is asserted.
+    await expect(async () => {
+      await page.keyboard.press('x');
+      await expect(input).not.toHaveValue('', { timeout: 1000 });
+    }).toPass();
+    await input.fill('');
+
     const text = `kasmvnc-${randomUUID()}`;
     await page.keyboard.type(text, { delay: 20 });
     await expect(input).toHaveValue(text);
