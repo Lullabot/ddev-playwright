@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/Lullabot/ddev-playwright/compare/v0.6.0...v0.6.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* keep staged Playwright manifests so ddev utility rebuild works ([#199](https://github.com/Lullabot/ddev-playwright/issues/199)) ([0989d62](https://github.com/Lullabot/ddev-playwright/commit/0989d62ed3343c45d9319694b90f4b37665f3cb9)), closes [#189](https://github.com/Lullabot/ddev-playwright/issues/189)
+
 ## [0.6.0](https://github.com/Lullabot/ddev-playwright/compare/v0.5.11...v0.6.0) (2026-11-02)
 
 
