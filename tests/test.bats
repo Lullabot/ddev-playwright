@@ -266,6 +266,16 @@ assert_invariant_layers_precede_browser_install() {
   cp -av "$DIR"/tests/testdata/npm-playwright test/playwright
   ddev exec -d /var/www/html/test/playwright npm ci
   verify_run_playwright
+
+  # `ddev utility rebuild` builds without running pre-start hooks, so it relies
+  # on the manifests staged at the last start still being there (#189).
+  assert [ -f .ddev/web-build/playwright/package.json ]
+  ddev utility rebuild --cache
+
+  # Removing the add-on also drops the .gitignore entry, so the staged copy
+  # has to go too or it would be left as untracked files.
+  ddev add-on remove ddev-playwright
+  refute [ -e .ddev/web-build/playwright ]
 }
 
 @test "install from directory with yarn" {

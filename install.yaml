@@ -53,6 +53,10 @@ post_install_actions:
 
 removal_actions:
 - if grep "#ddev-generated" web-build/Dockerfile.playwright 2>/dev/null; then rm web-build/Dockerfile.playwright; fi
+# The pre-start hook's staged dependency manifests persist between starts so
+# `ddev utility rebuild` can build. Remove them along with the .gitignore entry
+# below, or they would be left behind as untracked files.
+- rm -rf web-build/playwright
 - |
   GITIGNORE="${DDEV_APPROOT}/.ddev/web-build/.gitignore"
   if [ -f "$GITIGNORE" ]; then

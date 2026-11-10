@@ -81,19 +81,25 @@ make_project() {
   echo "fixture" > "${test_dir}/fixtures/database.sql"
 }
 
-# Run each exec-host pre-start hook the way ddev does: one bash invocation per
-# hook, from the project root. PATH is pointed at the macOS cp stand-in.
-run_pre_start_hooks() {
+# Run each exec-host hook for an event the way ddev does: one bash invocation
+# per hook, from the project root. PATH is pointed at the macOS cp stand-in.
+# An event with no hooks runs nothing.
+run_hooks() {
+  local event="$1"
   cd "${PROJECT}"
 
   local count index script
-  count="$(yq -r '.hooks["pre-start"] | length' "${DIR}/config.playwright.yml")"
+  count="$(yq -r ".hooks[\"${event}\"] | length" "${DIR}/config.playwright.yml")"
 
   for (( index = 0; index < count; index++ )); do
-    script="$(yq -r ".hooks[\"pre-start\"][${index}][\"exec-host\"]" "${DIR}/config.playwright.yml")"
+    script="$(yq -r ".hooks[\"${event}\"][${index}][\"exec-host\"]" "${DIR}/config.playwright.yml")"
     [ "${script}" = "null" ] && continue
     PATH="${BSD_CP_PATH}:${PATH}" bash -c "${script}"
   done
+}
+
+run_pre_start_hooks() {
+  run_hooks pre-start
 }
 
 @test "pre-start stages the dependency manifests" {
@@ -105,6 +111,17 @@ run_pre_start_hooks() {
   assert [ -f "${staged}/package-lock.json" ]
   assert [ -f "${staged}/.npmrc" ]
   assert [ -d "${staged}/.yarn" ]
+}
+
+@test "the staged directory survives post-start" {
+  make_project
+  run_pre_start_hooks
+  run_hooks post-start
+
+  # `ddev utility rebuild` builds the web image without running pre-start
+  # hooks, so the bind mount in Dockerfile.playwright needs the copy staged at
+  # the last start to still be here (#189).
+  assert [ -f .ddev/web-build/playwright/package.json ]
 }
 
 @test "pre-start stages nothing that only churns with test authoring" {

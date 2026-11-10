@@ -20,6 +20,12 @@ hooks:
           cp .ddev/web-build/disabled.Dockerfile.playwright .ddev/web-build/Dockerfile.playwright
           sed -i.bak "s|__PLAYWRIGHT_TEST_DIR__|${PLAYWRIGHT_TEST_DIR}|g" .ddev/web-build/Dockerfile.playwright
           rm -f .ddev/web-build/Dockerfile.playwright.bak
+          # The staged copy is deliberately left in place after the start.
+          # `ddev utility rebuild` builds the image without running pre-start
+          # hooks, so it needs the copy from the last start to still be here
+          # (#189). The add-on's .gitignore entry keeps it out of version
+          # control, and `ddev add-on get` only touches the files listed in
+          # install.yaml, so leaving it does not block add-on updates.
           rm -rf .ddev/web-build/playwright
           # Stage only the files a package manager reads to resolve and
           # install dependencies. Dockerfile.playwright bind-mounts this
@@ -67,11 +73,6 @@ hooks:
             done
           fi
         fi
-  post-start:
-    # Clean up the playwright directory copied for builds.
-    # We want to remove this otherwise future ddev get's will not copy in
-    # changes to the web-build directory.
-    - exec-host: rm -rf .ddev/web-build/playwright
 web_environment:
   - DISPLAY=:1
   # Playwright's bundled Firefox reads enterprise policies from the file
