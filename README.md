@@ -179,6 +179,12 @@ web image, and every layer after it, each time you updated a screenshot. None
 of those files survive into the image anyway; the layer deletes its copy once
 the browsers are cached.
 
+The staged directory stays in place between starts, so `ddev utility rebuild`
+works too: it builds from the copy made at the last start without running the
+pre-start hook. It's already listed in `.ddev/web-build/.gitignore`. If your
+dependencies changed since the last start, `ddev restart` stages the new
+manifests and rebuilds the browser layer.
+
 The practical consequence: a dependency in your `package.json` must be
 resolvable from the Playwright directory alone. A `file:` dependency pointing
 outside it (`file:../../some-package.tgz`) will fail to install during the
